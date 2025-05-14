@@ -7,11 +7,13 @@ import ProfessionalDeleteDialog from "./profissionais/ProfessionalDeleteDialog";
 import { Button } from "@/components/ui/button";
 import { useProfessionals } from "./profissionais/useProfessionals";
 import { useState } from "react";
+import { useAuth } from "@/context/auth-context";
 
 const PAGE_SIZE = 10;
 
 const Professionals = () => {
   const { toast } = useToast();
+  const { isLoggedIn } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const professionalState = useProfessionals({ 
     page: currentPage, 
@@ -44,6 +46,10 @@ const Professionals = () => {
     return dias.map((dia) => abrev[dia] || dia).join(", ");
   };
 
+  // Check if user has permission to manage professionals
+  // In this simplified version, we just check if they're logged in
+  const canManageProfessionals = isLoggedIn;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-y-4">
@@ -53,54 +59,61 @@ const Professionals = () => {
             Gerencie os profissionais do salão
           </p>
         </div>
-        <Button 
-          onClick={professionalState.openNewProfessionalDialog} 
-          className="flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" /> Novo Profissional
-        </Button>
+        {canManageProfessionals && (
+          <Button 
+            onClick={professionalState.openNewProfessionalDialog} 
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" /> Novo Profissional
+          </Button>
+        )}
       </div>
       
       <div className="bg-white rounded-lg shadow">
         <ProfessionalTable
           professionals={professionalState.professionals?.data || []}
           isLoading={professionalState.isLoading}
-          onEdit={professionalState.handleEdit}
-          onDelete={professionalState.handleDelete}
+          onEdit={canManageProfessionals ? professionalState.handleEdit : undefined}
+          onDelete={canManageProfessionals ? professionalState.handleDelete : undefined}
           formatDiasAtendimento={formatDiasAtendimento}
-          onAddProfessional={professionalState.openNewProfessionalDialog}
+          onAddProfessional={canManageProfessionals ? professionalState.openNewProfessionalDialog : undefined}
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
+          isAdminView={canManageProfessionals}
         />
       </div>
 
-      <ProfessionalFormDialog
-        open={professionalState.isDialogOpen}
-        isEditing={professionalState.isEditing}
-        form={professionalState.formData}
-        errors={professionalState.errors}
-        onChange={professionalState.handleChange}
-        onToggleDay={professionalState.toggleDay}
-        onClose={() => {
-          professionalState.setIsDialogOpen(false);
-          professionalState.resetForm();
-        }}
-        onSubmit={professionalState.handleSubmit}
-      />
+      {canManageProfessionals && (
+        <>
+          <ProfessionalFormDialog
+            open={professionalState.isDialogOpen}
+            isEditing={professionalState.isEditing}
+            form={professionalState.formData}
+            errors={professionalState.errors}
+            onChange={professionalState.handleChange}
+            onToggleDay={professionalState.toggleDay}
+            onClose={() => {
+              professionalState.setIsDialogOpen(false);
+              professionalState.resetForm();
+            }}
+            onSubmit={professionalState.handleSubmit}
+          />
 
-      <ProfessionalDeleteDialog
-        open={professionalState.isDeleteDialogOpen}
-        professional={professionalState.currentProfessional}
-        onCancel={() => professionalState.setIsDeleteDialogOpen(false)}
-        onDelete={() => {
-          if (professionalState.currentProfessional) {
-            professionalState.deleteProfessionalMutation.mutate(
-              professionalState.currentProfessional.id
-            );
-          }
-        }}
-      />
+          <ProfessionalDeleteDialog
+            open={professionalState.isDeleteDialogOpen}
+            professional={professionalState.currentProfessional}
+            onCancel={() => professionalState.setIsDeleteDialogOpen(false)}
+            onDelete={() => {
+              if (professionalState.currentProfessional) {
+                professionalState.deleteProfessionalMutation.mutate(
+                  professionalState.currentProfessional.id
+                );
+              }
+            }}
+          />
+        </>
+      )}
     </div>
   );
 };

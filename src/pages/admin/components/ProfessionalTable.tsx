@@ -10,13 +10,14 @@ import { DataTablePagination } from "@/components/common/DataTablePagination";
 interface ProfessionalTableProps {
   professionals: Professional[];
   isLoading: boolean;
-  onEdit: (professional: Professional) => void;
-  onDelete: (professional: Professional) => void;
+  onEdit?: (professional: Professional) => void;
+  onDelete?: (professional: Professional) => void;
   formatDiasAtendimento: (dias: string[]) => string;
-  onAddProfessional: () => void;
+  onAddProfessional?: () => void;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  isAdminView?: boolean;
 }
 
 const ProfessionalTable: React.FC<ProfessionalTableProps> = ({
@@ -29,6 +30,7 @@ const ProfessionalTable: React.FC<ProfessionalTableProps> = ({
   currentPage,
   totalPages,
   onPageChange,
+  isAdminView = false,
 }) => {
   // Lista completa dos dias da semana para verificar disponibilidade
   const diasSemana = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
@@ -36,6 +38,8 @@ const ProfessionalTable: React.FC<ProfessionalTableProps> = ({
 
   // Função para renderizar badges dos dias de atendimento
   const renderDiasBadges = (dias: string[]) => {
+    if (!dias || !Array.isArray(dias)) return null;
+    
     return (
       <div className="flex flex-wrap gap-1">
         {diasSemana.map((dia, index) => (
@@ -66,7 +70,9 @@ const ProfessionalTable: React.FC<ProfessionalTableProps> = ({
                   <TableHead className="w-[30%]">Nome</TableHead>
                   <TableHead className="w-[40%]">Dias</TableHead>
                   <TableHead className="w-[20%]">Horários</TableHead>
-                  <TableHead className="w-[10%]">Ações</TableHead>
+                  {isAdminView && onEdit && onDelete && (
+                    <TableHead className="w-[10%]">Ações</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -81,26 +87,28 @@ const ProfessionalTable: React.FC<ProfessionalTableProps> = ({
                     <TableCell className="whitespace-nowrap">
                       {professional.horario_inicio} às {professional.horario_fim}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => onEdit(professional)}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => onDelete(professional)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    {isAdminView && onEdit && onDelete && (
+                      <TableCell>
+                        <div className="flex space-x-1">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => onEdit(professional)}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => onDelete(professional)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -117,9 +125,11 @@ const ProfessionalTable: React.FC<ProfessionalTableProps> = ({
           <p className="text-muted-foreground mb-4">
             Não há profissionais cadastradas.
           </p>
-          <Button onClick={onAddProfessional}>
-            Adicionar Profissional
-          </Button>
+          {onAddProfessional && (
+            <Button onClick={onAddProfessional}>
+              Adicionar Profissional
+            </Button>
+          )}
         </div>
       )}
     </div>

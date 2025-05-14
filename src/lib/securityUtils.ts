@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for data security and privacy
  */
@@ -51,4 +50,45 @@ export const clearSensitiveData = (): void => {
   localStorage.removeItem('clientForm');
   
   console.log('Sensitive data cleared from browser storage');
+};
+
+/**
+ * Sanitizes professional data to remove or mask sensitive information
+ * @param professional The professional object to sanitize
+ * @param isAdminView Whether this is being viewed by an admin with proper permissions
+ * @returns Sanitized professional object
+ */
+export const sanitizeProfessionalData = <T extends { id: string }>(professional: T, isAdminView = false): T => {
+  if (!professional) return professional;
+  
+  // If admin view, return the full data
+  if (isAdminView) return professional;
+  
+  // Create a shallow copy to avoid mutating the original
+  const sanitized = { ...professional };
+  
+  // Remove sensitive fields that should not be exposed to public view
+  // We only keep fields that are safe for public consumption
+  const safeObject = {
+    id: professional.id,
+    nome: professional.nome,
+    // Include other non-sensitive fields as needed
+    ...('dias_atendimento' in professional ? { dias_atendimento: (professional as any).dias_atendimento } : {}),
+    ...('horario_inicio' in professional ? { horario_inicio: (professional as any).horario_inicio } : {}),
+    ...('horario_fim' in professional ? { horario_fim: (professional as any).horario_fim } : {})
+  } as T;
+  
+  return safeObject;
+};
+
+/**
+ * Sanitizes a list of professional data objects
+ * @param professionals Array of professional objects to sanitize
+ * @param isAdminView Whether this is being viewed by an admin with proper permissions
+ * @returns Array of sanitized professional objects
+ */
+export const sanitizeProfessionalsData = <T extends { id: string }>(professionals: T[], isAdminView = false): T[] => {
+  if (!professionals || !Array.isArray(professionals)) return [];
+  
+  return professionals.map(professional => sanitizeProfessionalData(professional, isAdminView));
 };

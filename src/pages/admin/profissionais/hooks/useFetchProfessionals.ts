@@ -1,6 +1,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { sanitizeProfessionalsData } from "@/lib/securityUtils";
+import { useAuth } from "@/context/auth-context";
 
 interface UseFetchProfessionalsProps {
   page: number;
@@ -11,6 +13,8 @@ export function useFetchProfessionals({
   page, 
   pageSize
 }: UseFetchProfessionalsProps) {
+  const { isLoggedIn } = useAuth();
+  
   return useQuery({
     queryKey: ["professionals", page, pageSize],
     queryFn: async () => {
@@ -29,8 +33,12 @@ export function useFetchProfessionals({
         throw error;
       }
 
+      // Apply data sanitization based on authentication status
+      // Only admins see complete data, others see sanitized version
+      const sanitizedData = sanitizeProfessionalsData(data || [], isLoggedIn);
+      
       return {
-        data: data || [],
+        data: sanitizedData || [],
         total: count || 0
       };
     },

@@ -1,23 +1,14 @@
 
 import { useState } from "react";
-import { format } from "date-fns";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AppointmentWithDetails } from "@/types/appointment.types";
-import { Loader2, CalendarClock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RescheduleForm } from "./RescheduleForm";
-import { useRescheduleForm } from "./hooks/useRescheduleForm";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface RescheduleDialogProps {
-  appointment: AppointmentWithDetails;
+  appointment: AppointmentWithDetails | null;
   isOpen: boolean;
   onClose: () => void;
   onReschedule: (date: Date, time: string) => Promise<boolean>;
@@ -33,36 +24,43 @@ export function RescheduleDialog({
 }: RescheduleDialogProps) {
   const { toast } = useToast();
 
-  const handleReschedule = async (date: Date, time: string) => {
+  // This function now returns a Promise<boolean> as expected by the interface
+  const handleReschedule = async (date: Date, time: string): Promise<boolean> => {
     try {
       console.log("Iniciando processo de reagendamento...");
       const success = await onReschedule(date, time);
       
       if (success) {
         console.log("Reagendamento concluído com sucesso");
+        toast({
+          title: "Reagendamento realizado",
+          description: `Agendamento remarcado para ${format(date, "dd 'de' MMMM", { locale: ptBR })} às ${time}`,
+        });
         onClose();
       }
+      return success;
     } catch (error) {
       console.error("Erro ao reagendar:", error);
       toast({
         title: "Erro ao reagendar",
-        description: "Ocorreu um erro durante o reagendamento. Tente novamente.",
-        variant: "destructive"
+        description: "Não foi possível reagendar o horário. Tente novamente.",
+        variant: "destructive",
       });
+      return false;
     }
   };
 
+  if (!appointment) {
+    return null;
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex-none">
-          <DialogTitle className="flex items-center gap-2">
-            <CalendarClock className="h-5 w-5" />
-            Reagendar Horário
-          </DialogTitle>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Reagendar</DialogTitle>
           <DialogDescription>
-            Selecione uma nova data e horário para o agendamento de{" "}
-            {appointment.cliente.nome}
+            Escolha uma nova data e horário para o agendamento com {appointment.cliente.nome}.
           </DialogDescription>
         </DialogHeader>
 
