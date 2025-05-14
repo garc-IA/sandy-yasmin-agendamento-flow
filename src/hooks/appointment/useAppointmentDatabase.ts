@@ -20,6 +20,28 @@ export type DatabaseResult<T = any> = {
  */
 export const useAppointmentDatabase = () => {
   /**
+   * Obtém o ID do admin padrão para o Studio Sandy Yasmin
+   * Esta função é usada internamente para associar operações ao admin correto
+   */
+  const getAdminId = async (): Promise<string> => {
+    try {
+      const { data, error } = await supabase
+        .from("admins")
+        .select("id")
+        .eq("email", "admin@studio.com")
+        .single();
+      
+      if (error) throw error;
+      if (!data?.id) throw new Error("Admin não encontrado");
+      
+      return data.id;
+    } catch (error) {
+      console.error("Erro ao obter ID do admin:", error);
+      throw error;
+    }
+  };
+
+  /**
    * Updates an appointment's status in the database
    */
   const updateAppointmentStatus = async (
@@ -252,6 +274,7 @@ export const useAppointmentDatabase = () => {
   };
 
   return {
+    getAdminId,
     updateAppointmentStatus,
     rescheduleAppointment,
     createHistoryEntry,

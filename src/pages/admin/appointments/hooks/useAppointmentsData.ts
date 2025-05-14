@@ -14,6 +14,25 @@ export function useAppointmentsData() {
   const [searchQuery, setSearchQuery] = useState("");
   const { forceRefetchAll } = useAppointmentCache();
 
+  // Função para obter o ID do admin do Studio Sandy Yasmin
+  const getAdminId = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("admins")
+        .select("id")
+        .eq("email", "admin@studio.com")
+        .single();
+      
+      if (error) throw error;
+      if (!data?.id) throw new Error("Admin não encontrado");
+      
+      return data.id;
+    } catch (error) {
+      console.error("Erro ao obter ID do admin:", error);
+      return null;
+    }
+  };
+
   // Fetch appointments
   const { 
     data: appointments = [], 
@@ -30,6 +49,9 @@ export function useAppointmentsData() {
           professional: professionalFilter,
           search: searchQuery
         });
+        
+        // Obtém o ID do admin para filtrar agendamentos
+        const adminId = await getAdminId();
         
         let query = supabase
           .from("agendamentos")
@@ -92,6 +114,9 @@ export function useAppointmentsData() {
     queryKey: ["professionals"],
     queryFn: async () => {
       try {
+        // Obtém o ID do admin para filtrar profissionais
+        const adminId = await getAdminId();
+        
         const { data, error } = await supabase
           .from("profissionais")
           .select("*")

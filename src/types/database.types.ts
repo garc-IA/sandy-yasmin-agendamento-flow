@@ -9,6 +9,55 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      owners: {
+        Row: {
+          id: string
+          name: string
+          email: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          email: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string
+          created_at?: string
+        }
+      }
+      admins: {
+        Row: {
+          id: string
+          owner_id: string | null
+          name: string
+          email: string
+          senha: string
+          avatar_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          owner_id?: string | null
+          name: string
+          email: string
+          senha: string
+          avatar_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          owner_id?: string | null
+          name?: string
+          email?: string
+          senha?: string
+          avatar_url?: string | null
+          created_at?: string
+        }
+      }
       agendamentos: {
         Row: {
           id: string
@@ -17,10 +66,13 @@ export interface Database {
           profissional_id: string
           data: string
           hora: string
+          start_time: string | null
+          end_time: string | null
           status: "agendado" | "concluido" | "cancelado" 
           ultima_mensagem_enviada_em: string | null
           created_at: string
-          salao_id?: string
+          motivo_cancelamento: string | null
+          avaliado: boolean | null
         }
         Insert: {
           id?: string
@@ -29,10 +81,13 @@ export interface Database {
           profissional_id: string
           data: string
           hora: string
+          start_time?: string | null
+          end_time?: string | null
           status?: "agendado" | "concluido" | "cancelado"
           ultima_mensagem_enviada_em?: string | null
           created_at?: string
-          salao_id?: string
+          motivo_cancelamento?: string | null
+          avaliado?: boolean | null
         }
         Update: {
           id?: string
@@ -41,10 +96,13 @@ export interface Database {
           profissional_id?: string
           data?: string
           hora?: string
+          start_time?: string | null
+          end_time?: string | null
           status?: "agendado" | "concluido" | "cancelado"
           ultima_mensagem_enviada_em?: string | null
           created_at?: string
-          salao_id?: string
+          motivo_cancelamento?: string | null
+          avaliado?: boolean | null
         }
       }
       clientes: {
@@ -54,7 +112,7 @@ export interface Database {
           telefone: string
           email: string
           created_at: string
-          salao_id?: string
+          admin_id: string | null
         }
         Insert: {
           id?: string
@@ -62,7 +120,7 @@ export interface Database {
           telefone: string
           email: string
           created_at?: string
-          salao_id?: string
+          admin_id?: string | null
         }
         Update: {
           id?: string
@@ -70,7 +128,7 @@ export interface Database {
           telefone?: string
           email?: string
           created_at?: string
-          salao_id?: string
+          admin_id?: string | null
         }
       }
       profissionais: {
@@ -81,7 +139,8 @@ export interface Database {
           horario_inicio: string
           horario_fim: string
           created_at: string
-          salao_id?: string
+          admin_id: string | null
+          specialization: string | null
         }
         Insert: {
           id?: string
@@ -90,7 +149,8 @@ export interface Database {
           horario_inicio: string
           horario_fim: string
           created_at?: string
-          salao_id?: string
+          admin_id?: string | null
+          specialization?: string | null
         }
         Update: {
           id?: string
@@ -99,7 +159,8 @@ export interface Database {
           horario_inicio?: string
           horario_fim?: string
           created_at?: string
-          salao_id?: string
+          admin_id?: string | null
+          specialization?: string | null
         }
       }
       servicos: {
@@ -110,7 +171,10 @@ export interface Database {
           duracao_em_minutos: number
           created_at: string
           ativo: boolean
-          salao_id?: string
+          descricao: string | null
+          categoria_id: string | null
+          imagem_url: string | null
+          admin_id: string | null
         }
         Insert: {
           id?: string
@@ -119,7 +183,10 @@ export interface Database {
           duracao_em_minutos: number
           created_at?: string
           ativo?: boolean
-          salao_id?: string
+          descricao?: string | null
+          categoria_id?: string | null
+          imagem_url?: string | null
+          admin_id?: string | null
         }
         Update: {
           id?: string
@@ -128,7 +195,39 @@ export interface Database {
           duracao_em_minutos?: number
           created_at?: string
           ativo?: boolean
-          salao_id?: string
+          descricao?: string | null
+          categoria_id?: string | null
+          imagem_url?: string | null
+          admin_id?: string | null
+        }
+      }
+      time_blocks: {
+        Row: {
+          id: string
+          admin_id: string | null
+          professional_id: string | null
+          start_time: string
+          end_time: string
+          reason: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          admin_id?: string | null
+          professional_id?: string | null
+          start_time: string
+          end_time: string
+          reason?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          admin_id?: string | null
+          professional_id?: string | null
+          start_time?: string
+          end_time?: string
+          reason?: string | null
+          created_at?: string
         }
       }
       saloes: {
@@ -168,7 +267,19 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      criar_cliente: {
+        Args: {
+          p_nome: string
+          p_telefone: string
+          p_email: string
+          p_admin_id?: string
+        }
+        Returns: string
+      }
+      delete_appointment_with_history: {
+        Args: { appointment_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

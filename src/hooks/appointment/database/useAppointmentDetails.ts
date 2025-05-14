@@ -11,6 +11,27 @@ import { DatabaseResult } from "../useAppointmentTypes";
  */
 export const useAppointmentDetails = () => {
   /**
+   * Obtém o ID do admin padrão para o Studio Sandy Yasmin
+   */
+  const getAdminId = async (): Promise<string> => {
+    try {
+      const { data, error } = await supabase
+        .from("admins")
+        .select("id")
+        .eq("email", "admin@studio.com")
+        .single();
+      
+      if (error) throw error;
+      if (!data?.id) throw new Error("Admin não encontrado");
+      
+      return data.id;
+    } catch (error) {
+      console.error("Erro ao obter ID do admin:", error);
+      throw error;
+    }
+  };
+
+  /**
    * Fetches appointment details by ID
    */
   const getAppointmentById = async (appointmentId: string): Promise<DatabaseResult> => {
@@ -43,5 +64,5 @@ export const useAppointmentDetails = () => {
     }
   };
 
-  return { getAppointmentById };
+  return { getAdminId, getAppointmentById };
 };

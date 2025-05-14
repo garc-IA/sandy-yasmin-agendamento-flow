@@ -83,11 +83,13 @@ export type Database = {
           cliente_id: string
           created_at: string
           data: string
+          end_time: string | null
           hora: string
           id: string
           motivo_cancelamento: string | null
           profissional_id: string
           servico_id: string
+          start_time: string | null
           status: string
           ultima_mensagem_enviada_em: string | null
         }
@@ -96,11 +98,13 @@ export type Database = {
           cliente_id: string
           created_at?: string
           data: string
+          end_time?: string | null
           hora: string
           id?: string
           motivo_cancelamento?: string | null
           profissional_id: string
           servico_id: string
+          start_time?: string | null
           status?: string
           ultima_mensagem_enviada_em?: string | null
         }
@@ -109,11 +113,13 @@ export type Database = {
           cliente_id?: string
           created_at?: string
           data?: string
+          end_time?: string | null
           hora?: string
           id?: string
           motivo_cancelamento?: string | null
           profissional_id?: string
           servico_id?: string
+          start_time?: string | null
           status?: string
           ultima_mensagem_enviada_em?: string | null
         }
@@ -197,6 +203,7 @@ export type Database = {
       }
       clientes: {
         Row: {
+          admin_id: string | null
           created_at: string
           email: string
           id: string
@@ -204,6 +211,7 @@ export type Database = {
           telefone: string
         }
         Insert: {
+          admin_id?: string | null
           created_at?: string
           email: string
           id?: string
@@ -211,40 +219,84 @@ export type Database = {
           telefone: string
         }
         Update: {
+          admin_id?: string | null
           created_at?: string
           email?: string
           id?: string
           nome?: string
           telefone?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      owners: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+        }
         Relationships: []
       }
       profissionais: {
         Row: {
+          admin_id: string | null
           created_at: string
           dias_atendimento: string[]
           horario_fim: string
           horario_inicio: string
           id: string
           nome: string
+          specialization: string | null
         }
         Insert: {
+          admin_id?: string | null
           created_at?: string
           dias_atendimento: string[]
           horario_fim: string
           horario_inicio: string
           id?: string
           nome: string
+          specialization?: string | null
         }
         Update: {
+          admin_id?: string | null
           created_at?: string
           dias_atendimento?: string[]
           horario_fim?: string
           horario_inicio?: string
           id?: string
           nome?: string
+          specialization?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profissionais_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "admins"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {
@@ -280,6 +332,7 @@ export type Database = {
       }
       servicos: {
         Row: {
+          admin_id: string | null
           ativo: boolean
           categoria: string | null
           categoria_id: string | null
@@ -292,6 +345,7 @@ export type Database = {
           valor: number
         }
         Insert: {
+          admin_id?: string | null
           ativo?: boolean
           categoria?: string | null
           categoria_id?: string | null
@@ -304,6 +358,7 @@ export type Database = {
           valor: number
         }
         Update: {
+          admin_id?: string | null
           ativo?: boolean
           categoria?: string | null
           categoria_id?: string | null
@@ -317,10 +372,62 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "servicos_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "admins"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "servicos_categoria_id_fkey"
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias_servico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_blocks: {
+        Row: {
+          admin_id: string | null
+          created_at: string
+          end_time: string
+          id: string
+          professional_id: string | null
+          reason: string | null
+          start_time: string
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string
+          end_time: string
+          id?: string
+          professional_id?: string | null
+          reason?: string | null
+          start_time: string
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string
+          end_time?: string
+          id?: string
+          professional_id?: string | null
+          reason?: string | null
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_blocks_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "admins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_blocks_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
             referencedColumns: ["id"]
           },
         ]
@@ -358,6 +465,15 @@ export type Database = {
       }
     }
     Functions: {
+      criar_cliente: {
+        Args: {
+          p_nome: string
+          p_telefone: string
+          p_email: string
+          p_admin_id?: string
+        }
+        Returns: string
+      }
       delete_appointment_with_history: {
         Args: { appointment_id: string }
         Returns: boolean
