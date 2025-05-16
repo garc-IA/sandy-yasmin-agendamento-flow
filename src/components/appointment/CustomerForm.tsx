@@ -59,6 +59,20 @@ const CustomerForm = ({
     setIsCheckingClient(true);
     
     try {
+      // Obtenha o ID do admin padrão primeiro
+      const { data: adminData, error: adminError } = await supabase
+        .from("admins")
+        .select("id")
+        .eq("email", "admin@studio.com")
+        .single();
+      
+      if (adminError || !adminData?.id) {
+        console.error("Erro ao buscar admin:", adminError);
+        throw new Error("Admin não encontrado");
+      }
+      
+      const adminId = adminData.id;
+      
       // Check by phone first since this is causing the primary error
       const formattedPhone = data.telefone;
       const { data: clientsByPhone, error: phoneError } = await supabase
@@ -118,6 +132,7 @@ const CustomerForm = ({
         nome: data.nome.trim(),
         telefone: formattedPhone,
         email: data.email.trim().toLowerCase(),
+        admin_id: adminId // Adicionando admin_id que estava faltando
       };
       
       if (salonId) {

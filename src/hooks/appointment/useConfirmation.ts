@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import type { AppointmentData } from "../types/confirmation.types";
+import type { AppointmentData } from "@/components/appointment/types/confirmation.types";
 import { logAppointmentAction, logAppointmentError } from "@/utils/debugUtils";
 
 export const useConfirmation = () => {

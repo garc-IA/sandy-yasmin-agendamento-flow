@@ -1,11 +1,24 @@
 
-import { Client, Service, Professional, Appointment } from "@/lib/supabase";
+import { Client, Service, Professional } from "@/lib/supabase";
 
-export interface AppointmentWithDetails extends Appointment {
+// Corrigir a definição de AppointmentWithDetails para tornar motivo_cancelamento opcional
+export interface AppointmentWithDetails {
+  id: string;
+  cliente_id: string;
+  servico_id: string;
+  profissional_id: string;
+  data: string;
+  hora: string;
+  start_time: string | null;
+  end_time: string | null;
+  status: "agendado" | "concluido" | "cancelado";
+  ultima_mensagem_enviada_em: string | null;
+  created_at: string;
+  motivo_cancelamento?: string | null; // Agora é opcional
+  avaliado: boolean | null;
   cliente: Client;
   servico: Service;
   profissional: Professional;
-  motivo_cancelamento?: string;
 }
 
 export interface AppointmentData {

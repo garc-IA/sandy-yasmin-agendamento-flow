@@ -19,4 +19,3 @@ export interface ConfirmationProps {
   setIsComplete: React.Dispatch<React.SetStateAction<boolean>>;
   prevStep: () => void;
 }
-

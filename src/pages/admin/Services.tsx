@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase, Service } from "@/lib/supabase";
@@ -214,8 +213,26 @@ const Services = () => {
     },
   });
 
-  const handleSubmit = (formData: any) => {
+  const handleSubmit = async (formData: any) => {
     console.log("Processing service form submission:", formData);
+
+    // Get admin ID
+    const { data: adminData, error: adminError } = await supabase
+      .from("admins")
+      .select("id")
+      .eq("email", "admin@studio.com")
+      .single();
+    
+    if (adminError || !adminData?.id) {
+      console.error("Error fetching admin ID:", adminError);
+      toast({
+        title: "Erro ao processar serviço",
+        description: "Não foi possível identificar o administrador.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const serviceData = {
       nome: formData.nome,
       descricao: formData.descricao || null,
@@ -224,6 +241,7 @@ const Services = () => {
       categoria_id: formData.categoria_id || null,
       imagem_url: formData.imagem_url || null,
       ativo: true,
+      admin_id: adminData.id // Adicionando o admin_id que estava faltando
     };
 
     if (isEditing && currentService) {
