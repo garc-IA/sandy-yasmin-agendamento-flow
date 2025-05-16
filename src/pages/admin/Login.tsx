@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -13,32 +14,27 @@ const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Hardcoded credentials for demo - in a real app, use Supabase Auth
-    const ADMIN_EMAIL = "admin@studio.com";
-    const ADMIN_PASSWORD = "admin123";
-    
     setIsLoading(true);
     
     try {
-      // Simulate API request delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const { error } = await signIn(email, password);
       
-      if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-        toast({
-          title: "Login bem-sucedido",
-          description: "Bem-vindo ao painel administrativo."
-        });
-        navigate("/admin");
-      } else {
+      if (error) {
         toast({
           title: "Erro de autenticação",
           description: "Email ou senha inválidos. Tente novamente.",
           variant: "destructive"
         });
+      } else {
+        toast({
+          title: "Login bem-sucedido",
+          description: "Bem-vindo ao painel administrativo."
+        });
+        navigate("/admin");
       }
     } catch (error) {
       toast({
