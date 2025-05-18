@@ -28,49 +28,49 @@ Deno.serve(async (req) => {
     // Create Supabase client
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Get current date and time
+    // Get current date and time in Brasilia time zone (UTC-3)
     const now = new Date();
     const currentDate = now.toISOString().split('T')[0];
     const currentHour = now.getHours().toString().padStart(2, '0');
     const currentMinute = now.getMinutes().toString().padStart(2, '0');
     const currentTime = `${currentHour}:${currentMinute}`;
     
-    console.log(`🕒 Running auto-complete check at ${currentDate} ${currentTime}`);
+    console.log(`🕒 Executando verificação de auto-complete em ${currentDate} ${currentTime} (horário do servidor)`);
 
-    // Find past appointments that are still in "agendado" status
-    const { data: pastAppointments, error } = await supabase
+    // Find all appointments that are still in "agendado" status
+    const { data: scheduledAppointments, error } = await supabase
       .from('agendamentos')
       .select('*')
       .eq('status', 'agendado');
 
     if (error) {
-      console.error('Error fetching appointments:', error);
+      console.error('Erro ao buscar agendamentos:', error);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch appointments' }),
+        JSON.stringify({ error: 'Falha ao buscar agendamentos' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
     // Filter appointments that are truly in the past
-    const trulyPastAppointments = pastAppointments.filter(appointment => 
+    const pastAppointments = scheduledAppointments.filter(appointment => 
       isInPast(appointment.data, appointment.hora)
     );
     
-    console.log(`📋 Found ${pastAppointments.length} scheduled appointments, ${trulyPastAppointments.length} are in the past`);
+    console.log(`📋 Encontrados ${scheduledAppointments.length} agendamentos em status "agendado", ${pastAppointments.length} estão no passado`);
 
-    if (trulyPastAppointments.length === 0) {
+    if (pastAppointments.length === 0) {
       return new Response(
-        JSON.stringify({ message: 'No past appointments to complete', updated: 0 }),
+        JSON.stringify({ message: 'Nenhum agendamento passado para completar', updated: 0 }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Update all past appointments to "concluido" status
-    const appointmentIds = trulyPastAppointments.map(apt => apt.id);
+    const appointmentIds = pastAppointments.map(apt => apt.id);
     
-    console.log(`🔄 Updating status for ${appointmentIds.length} past appointments`);
-    for (const appointment of trulyPastAppointments) {
-      console.log(`   - Appointment ${appointment.id}: Date: ${appointment.data} Time: ${appointment.hora}`);
+    console.log(`🔄 Atualizando status de ${appointmentIds.length} agendamentos passados para "concluido"`);
+    for (const appointment of pastAppointments) {
+      console.log(`   - Agendamento ${appointment.id}: Data: ${appointment.data} Hora: ${appointment.hora}`);
     }
     
     const { data: updatedAppointments, error: updateError } = await supabase
@@ -82,9 +82,9 @@ Deno.serve(async (req) => {
       .select();
 
     if (updateError) {
-      console.error('Error updating past appointments:', updateError);
+      console.error('Erro ao atualizar agendamentos passados:', updateError);
       return new Response(
-        JSON.stringify({ error: 'Failed to update past appointments' }),
+        JSON.stringify({ error: 'Falha ao atualizar agendamentos passados' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -97,19 +97,22 @@ Deno.serve(async (req) => {
       novo_valor: 'concluido'
     }));
 
-    const { error: historyError } = await supabase
-      .from('agendamento_historico')
-      .insert(historyEntries);
+    if (historyEntries.length > 0) {
+      const { error: historyError } = await supabase
+        .from('agendamento_historico')
+        .insert(historyEntries);
 
-    if (historyError) {
-      console.error('Error creating history entries:', historyError);
+      if (historyError) {
+        console.error('Erro ao criar entradas no histórico:', historyError);
+        // Não falhar a operação por erro no histórico, apenas logar
+      }
     }
     
-    console.log(`✅ Successfully auto-completed ${appointmentIds.length} appointments`);
+    console.log(`✅ Auto-completados com sucesso ${appointmentIds.length} agendamentos`);
 
     return new Response(
       JSON.stringify({ 
-        message: 'Past appointments auto-completed successfully', 
+        message: 'Agendamentos passados auto-completados com sucesso', 
         updated: appointmentIds.length,
         appointments: updatedAppointments
       }),
@@ -117,9 +120,9 @@ Deno.serve(async (req) => {
     );
 
   } catch (err) {
-    console.error('Unexpected error:', err);
+    console.error('Erro inesperado:', err);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Erro interno do servidor' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

@@ -7,7 +7,7 @@ export interface AppointmentData {
   time: string;
   client: Client;
   professional_id: string;
-  professionalId?: string; // Added for compatibility
+  professionalId?: string | null; // Added for compatibility
   professional_name?: string;
 }
 

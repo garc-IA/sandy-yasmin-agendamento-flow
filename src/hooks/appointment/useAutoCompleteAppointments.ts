@@ -48,16 +48,15 @@ export function useAutoCompleteAppointments() {
     }
   };
 
-  // Não executamos mais automaticamente, conforme solicitado pelo cliente
+  // Executar ao montar o componente e periodicamente a cada 5 minutos
   useEffect(() => {
-    // IMPORTANTE: Auto-complete está desativado, conforme solicitação
-    // runAutoComplete();
+    // Executar imediatamente quando o componente montar
+    runAutoComplete();
     
-    // Por agora, não executamos mais automaticamente nem periodicamente
-    // const interval = setInterval(runAutoComplete, 5 * 60 * 1000);
-    // return () => clearInterval(interval);
+    // E então a cada 5 minutos
+    const interval = setInterval(runAutoComplete, 5 * 60 * 1000);
     
-    return () => {}; // Cleanup vazio
+    return () => clearInterval(interval);
   }, []);
   
   return { runAutoComplete, isRunning };

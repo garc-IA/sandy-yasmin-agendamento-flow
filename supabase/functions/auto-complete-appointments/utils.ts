@@ -7,26 +7,24 @@
  */
 export function isInPast(dateStr: string, timeStr: string): boolean {
   try {
-    // Obter a data atual em UTC
+    // Obter a data atual
     const now = new Date();
     
     // Criar uma data com a data e hora do agendamento
     const [year, month, day] = dateStr.split('-').map(Number);
     const [hours, minutes] = timeStr.split(':').map(Number);
     
-    // Criar a data do agendamento em UTC
-    // A data deve ser criada no fuso horário local do Brasil (UTC-3)
-    // Para isso, subtraímos 3 horas para converter de Brasil para UTC
-    // Exemplo: 15:00 no Brasil é 18:00 UTC
-    const appointmentDateUTC = new Date(Date.UTC(year, month - 1, day, hours - 3, minutes, 0));
+    // Para lidar corretamente com o fuso horário de Brasília (UTC-3),
+    // criamos a data localmente e a comparamos com a data atual
+    const appointmentDate = new Date(year, month - 1, day, hours, minutes);
     
     console.log(`Comparando:
-    - Data/hora agendamento (original): ${dateStr} ${timeStr}
-    - Data/hora agendamento (UTC ajustada): ${appointmentDateUTC.toISOString()}
-    - Data/hora atual (UTC): ${now.toISOString()}`);
+    - Data/hora agendamento: ${dateStr} ${timeStr} (${appointmentDate.toISOString()})
+    - Data/hora atual: ${now.toISOString()}
+    - Resultado: ${now > appointmentDate ? 'Passado' : 'Futuro'}`);
     
-    // Comparar as datas em UTC
-    return now >= appointmentDateUTC;
+    // Comparar as datas diretamente
+    return now > appointmentDate;
   } catch (e) {
     console.error('Erro ao verificar se data está no passado:', e);
     return false;

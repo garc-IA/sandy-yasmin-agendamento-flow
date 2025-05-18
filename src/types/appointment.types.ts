@@ -1,7 +1,5 @@
-
 import { Client, Service, Professional } from "@/lib/supabase";
 
-// Corrigir a definição de AppointmentWithDetails para tornar motivo_cancelamento opcional
 export interface AppointmentWithDetails {
   id: string;
   cliente_id: string;
@@ -14,7 +12,7 @@ export interface AppointmentWithDetails {
   status: "agendado" | "concluido" | "cancelado";
   ultima_mensagem_enviada_em: string | null;
   created_at: string;
-  motivo_cancelamento?: string | null; // Agora é opcional
+  motivo_cancelamento?: string | null;
   avaliado: boolean | null;
   cliente: Client;
   servico: Service;

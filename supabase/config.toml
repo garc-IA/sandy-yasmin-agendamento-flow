@@ -1,3 +1,32 @@
 
-# Update this to match the project ref where you're creating the function
 project_id = "bqzlexfnozmaqtvpbpay"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54322
+
+[studio]
+port = 54323
+
+[auth]
+enabled = true
+
+[inbucket]
+enabled = true
+
+[storage]
+enabled = true
+
+[filepreviewer]
+enabled = true
+
+[functions]
+[functions.auto-complete-appointments]
+verify_jwt = false
+
+[functions.cron-auto-complete]
+verify_jwt = false
