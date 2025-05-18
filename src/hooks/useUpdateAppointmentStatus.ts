@@ -42,6 +42,9 @@ export const useUpdateAppointmentStatus = () => {
       
       // E também garantimos que o dashboard está atualizado
       await refreshDashboardData();
+      
+      // Adicionar um pequeno atraso para garantir que a UI seja atualizada
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       logAppointment('Cache atualizado com sucesso', 'global');
       endTiming();
@@ -76,18 +79,23 @@ export const useUpdateAppointmentStatus = () => {
         throw new Error(error?.message || "Falha ao atualizar status");
       }
 
-      // Criar entrada no histórico usando nosso hook refatorado
-      const historyDescription = `Status alterado para ${status}${reason ? ` - Motivo: ${reason}` : ''}`;
-      const { success: historySuccess, error: historyError } = await createHistoryEntry(
-        appointmentId,
-        status,
-        historyDescription,
-        undefined,
-        status
-      );
+      // Tentar criar entrada no histórico, mas continuar mesmo se falhar
+      try {
+        const historyDescription = `Status alterado para ${status}${reason ? ` - Motivo: ${reason}` : ''}`;
+        const { success: historySuccess, error: historyError } = await createHistoryEntry(
+          appointmentId,
+          status,
+          historyDescription,
+          undefined,
+          status
+        );
 
-      if (!historySuccess) {
-        logAppointment('Aviso: Erro ao registrar histórico', appointmentId, historyError);
+        if (!historySuccess) {
+          console.warn(`⚠️ Histórico não registrado para agendamento ${appointmentId}:`, historyError);
+          // Continuamos apesar do erro no histórico
+        }
+      } catch (historyError) {
+        console.warn(`⚠️ Erro ao registrar histórico para agendamento ${appointmentId}:`, historyError);
         // Continuamos apesar do erro no histórico
       }
 
@@ -99,8 +107,17 @@ export const useUpdateAppointmentStatus = () => {
                     "Status atualizado com sucesso.",
       });
 
-      // Força atualização completa dos dados
+      // Força atualização completa dos dados com atraso para garantir consistência
       await forceRefreshAppointments();
+      
+      // Forçar nova consulta após o tempo de expiração do cache
+      setTimeout(async () => {
+        await queryClient.refetchQueries({ 
+          queryKey: ['appointments'],
+          type: 'active',
+        });
+        console.log("✅ Realizada consulta adicional para garantir dados atualizados");
+      }, 500);
       
       endTiming();
       return true;

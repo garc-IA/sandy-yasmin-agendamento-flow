@@ -68,14 +68,14 @@ export function AdminAppointmentCard({ appointment, onClick }: AdminAppointmentC
                 </div>
                 
                 {isPastAndPending && (
-                  <div className="text-amber-600 text-sm font-medium">
+                  <div className="text-amber-600 text-sm font-medium animate-pulse">
                     ⚠️ Agendamento no passado - necessita atualização
                   </div>
                 )}
               </div>
               
               <div className="flex flex-col md:items-end gap-2 mt-2 md:mt-0">
-                <Badge className={statusColor}>
+                <Badge variant="secondary" className={statusColor}>
                   {statusLabel}
                 </Badge>
                 

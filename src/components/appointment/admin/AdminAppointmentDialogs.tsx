@@ -40,8 +40,19 @@ export function AdminAppointmentDialogs({
     
     const success = await completeAppointment(appointment.id);
     if (success) {
-      onAppointmentUpdated();
+      // Clone e modifique o appointment para refletir a mudança imediatamente na UI
+      const updatedAppointment = {
+        ...appointment,
+        status: "concluido" as const
+      };
+      
+      // Fechar o diálogo e forçar atualização dos dados
       setShowDetailsDialog(false);
+      
+      // Permitir que a UI seja atualizada antes de chamar onAppointmentUpdated
+      setTimeout(() => {
+        onAppointmentUpdated();
+      }, 100);
     }
   };
 
@@ -50,9 +61,14 @@ export function AdminAppointmentDialogs({
     
     const success = await cancelAppointment(appointment.id, reason);
     if (success) {
-      onAppointmentUpdated();
+      // Fechar diálogos e forçar atualização dos dados
       setShowCancelDialog(false);
       setShowDetailsDialog(false);
+      
+      // Permitir que a UI seja atualizada antes de chamar onAppointmentUpdated
+      setTimeout(() => {
+        onAppointmentUpdated();
+      }, 100);
     }
   };
 
@@ -62,9 +78,14 @@ export function AdminAppointmentDialogs({
     const success = await rescheduleAppointment(appointment.id, date, time);
     
     if (success) {
-      onAppointmentUpdated();
+      // Fechar diálogos e forçar atualização dos dados
       setShowRescheduleDialog(false);
       setShowDetailsDialog(false);
+      
+      // Permitir que a UI seja atualizada antes de chamar onAppointmentUpdated
+      setTimeout(() => {
+        onAppointmentUpdated();
+      }, 100);
     }
   };
 
@@ -73,9 +94,14 @@ export function AdminAppointmentDialogs({
     
     const success = await deleteAppointment(appointment.id);
     if (success) {
-      onAppointmentUpdated();
+      // Fechar diálogos e forçar atualização dos dados
       setShowDeleteDialog(false);
       setShowDetailsDialog(false);
+      
+      // Permitir que a UI seja atualizada antes de chamar onAppointmentUpdated
+      setTimeout(() => {
+        onAppointmentUpdated();
+      }, 100);
     }
   };
 

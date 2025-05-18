@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { AppointmentWithDetails } from "@/types/appointment.types";
 import { AppointmentStatusSection } from "./list/AppointmentStatusSection";
 import { AppointmentDialog } from "./AppointmentDialog";
@@ -6,6 +7,7 @@ import { StatusUpdateDialog } from "./StatusUpdateDialog";
 import { useAppointmentGrouper } from "./list/AppointmentGrouper";
 import { useUpdateAppointmentStatus } from "@/hooks/useUpdateAppointmentStatus";
 import { useToast } from "@/hooks/use-toast";
+import { useAutoCompleteAppointments } from "@/hooks/appointment/useAutoCompleteAppointments";
 
 interface AppointmentListProps {
   appointments: AppointmentWithDetails[];
@@ -33,6 +35,14 @@ export function AppointmentList({
   // Status update hook
   const { updateStatus, deleteAppointment, isLoading } = useUpdateAppointmentStatus();
   const { toast } = useToast();
+  
+  // Auto-complete hook para verificar agendamentos passados
+  const { runAutoComplete } = useAutoCompleteAppointments();
+  
+  // Executar auto-complete quando o componente montar
+  useEffect(() => {
+    runAutoComplete();
+  }, []);
 
   // Group appointments by status
   const { groupedAppointments, isEmpty } = useAppointmentGrouper({ 
@@ -88,7 +98,11 @@ export function AppointmentList({
         setIsConfirmDialogOpen(false);
         setStatusAction(null);
         setCancelReason('');
-        onAppointmentUpdated();
+        
+        // Adicionar um pequeno atraso para garantir que o estado visual seja atualizado
+        setTimeout(() => {
+          onAppointmentUpdated();
+        }, 100);
       }
     } catch (error) {
       console.error("Error handling action:", error);
@@ -99,7 +113,11 @@ export function AppointmentList({
   const handleDialogClosed = (refreshData: boolean = false) => {
     if (refreshData && onAppointmentUpdated) {
       console.log("Refreshing appointments data after dialog action");
-      onAppointmentUpdated();
+      
+      // Adicionar um pequeno atraso para garantir que o estado visual seja atualizado
+      setTimeout(() => {
+        onAppointmentUpdated();
+      }, 100);
     }
   };
 

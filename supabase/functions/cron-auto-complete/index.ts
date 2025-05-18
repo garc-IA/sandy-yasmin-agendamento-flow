@@ -18,6 +18,8 @@ Deno.serve(async (req) => {
     // Create Supabase client with admin privileges
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
+    console.log('🕒 Cron job iniciado: executando auto-complete-appointments');
+    
     // Call the auto-complete-appointments function
     const { data, error } = await supabase.functions.invoke('auto-complete-appointments');
     
@@ -35,7 +37,8 @@ Deno.serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         message: 'Cron job auto-complete executado', 
-        result: data 
+        result: data,
+        timestamp: new Date().toISOString()
       }),
       { status: 200 }
     );

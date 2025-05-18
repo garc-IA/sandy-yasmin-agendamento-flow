@@ -13,18 +13,19 @@ export function isInPast(dateStr: string, timeStr: string): boolean {
     // Obter a data atual
     const now = new Date();
     
-    // Criar uma data com a data e hora do agendamento no fuso horário local (Brasil)
+    // Criar uma data com a data e hora do agendamento
     const [year, month, day] = dateStr.split('-').map(Number);
     const [hours, minutes] = timeStr.split(':').map(Number);
+    
+    // Criar a data do agendamento no fuso horário local
     const appointmentDate = new Date(year, month - 1, day, hours, minutes);
     
-    // Para depuração
     console.log(`Verificando se data está no passado:
     - Data atual: ${now.toISOString()}
     - Data do agendamento: ${appointmentDate.toISOString()}
     - Resultado: ${now > appointmentDate ? 'SIM' : 'NÃO'}`);
     
-    // Comparar diretamente usando o fuso horário local
+    // Comparar as datas diretamente
     return now > appointmentDate;
   } catch (e) {
     console.error('Erro ao verificar se data está no passado:', e);
