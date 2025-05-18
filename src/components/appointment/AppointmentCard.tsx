@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AppointmentWithDetails } from "@/types/appointment.types";
 import { formatCurrency } from "@/lib/supabase";
+import { isInPast } from "@/lib/dateUtils";
 
 interface AppointmentCardProps {
   appointment: AppointmentWithDetails;
@@ -57,6 +58,10 @@ export function AppointmentCard({
         return baseClass;
     }
   };
+  
+  // Check if appointment is in the past and still marked as "agendado"
+  const isPastAndPending = appointment.status === "agendado" && 
+    isInPast(appointment.data, appointment.hora);
 
   return (
     <div className={getCardClassName()}>
@@ -85,6 +90,12 @@ export function AppointmentCard({
               Motivo: {appointment.motivo_cancelamento}
             </div>
           )}
+          
+          {isPastAndPending && (
+            <div className="mt-2 text-amber-600 text-sm font-medium animate-pulse">
+              ⚠️ Agendamento no passado - necessita atualização
+            </div>
+          )}
         </div>
 
         <div className="mt-4 sm:mt-0 text-right">
@@ -102,7 +113,7 @@ export function AppointmentCard({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="text-green-600 border-green-600 hover:bg-green-50"
+                  className={`text-green-600 border-green-600 hover:bg-green-50 ${isPastAndPending ? 'animate-pulse' : ''}`}
                   onClick={() => onActionClick(appointment.id, "complete")}
                 >
                   <CheckCircle className="h-4 w-4 mr-1" />

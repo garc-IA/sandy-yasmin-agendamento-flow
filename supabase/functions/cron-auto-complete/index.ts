@@ -1,8 +1,20 @@
 
 // This Edge Function is designed to be called by a cron job scheduler
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import { corsHeaders } from '../_shared/cors.ts';
+
+// Adicionar cabeçalhos CORS
+const headers = {
+  ...corsHeaders,
+  "Content-Type": "application/json",
+};
 
 Deno.serve(async (req) => {
+  // Handle CORS preflight request
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers });
+  }
+  
   try {
     // Get environment variables
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -11,7 +23,7 @@ Deno.serve(async (req) => {
     if (!supabaseUrl || !supabaseServiceKey) {
       return new Response(
         JSON.stringify({ error: 'Missing Supabase environment variables' }),
-        { status: 500 }
+        { status: 500, headers }
       );
     }
 
@@ -27,7 +39,7 @@ Deno.serve(async (req) => {
       console.error('Erro ao chamar auto-complete-appointments:', error);
       return new Response(
         JSON.stringify({ error: 'Falha ao executar auto-complete' }),
-        { status: 500 }
+        { status: 500, headers }
       );
     }
     
@@ -40,14 +52,14 @@ Deno.serve(async (req) => {
         result: data,
         timestamp: new Date().toISOString()
       }),
-      { status: 200 }
+      { status: 200, headers }
     );
 
   } catch (err) {
     console.error('Erro inesperado no cron job:', err);
     return new Response(
       JSON.stringify({ error: 'Erro interno do servidor' }),
-      { status: 500 }
+      { status: 500, headers }
     );
   }
 });

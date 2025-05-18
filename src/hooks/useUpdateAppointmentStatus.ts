@@ -43,8 +43,11 @@ export const useUpdateAppointmentStatus = () => {
       // E também garantimos que o dashboard está atualizado
       await refreshDashboardData();
       
+      // Forçar o refetch de todas as queries ativas
+      await queryClient.refetchQueries({ type: 'active' });
+      
       // Adicionar um pequeno atraso para garantir que a UI seja atualizada
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       logAppointment('Cache atualizado com sucesso', 'global');
       endTiming();
@@ -110,14 +113,14 @@ export const useUpdateAppointmentStatus = () => {
       // Força atualização completa dos dados com atraso para garantir consistência
       await forceRefreshAppointments();
       
-      // Forçar nova consulta após o tempo de expiração do cache
+      // Forçar nova consulta após o tempo de expiração do cache para garantir dados atualizados
       setTimeout(async () => {
         await queryClient.refetchQueries({ 
           queryKey: ['appointments'],
           type: 'active',
         });
         console.log("✅ Realizada consulta adicional para garantir dados atualizados");
-      }, 500);
+      }, 1000);
       
       endTiming();
       return true;

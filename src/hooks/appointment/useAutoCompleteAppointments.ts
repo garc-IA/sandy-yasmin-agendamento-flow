@@ -14,12 +14,15 @@ export function useAutoCompleteAppointments() {
     
     setIsRunning(true);
     try {
+      console.log("⏱️ Executando auto-complete de agendamentos...");
       const { data, error } = await supabase.functions.invoke('auto-complete-appointments');
       
       if (error) {
         console.error('Erro ao executar auto-complete:', error);
         return;
       }
+      
+      console.log("✅ Resultado do auto-complete:", data);
       
       // Se algum agendamento foi atualizado, invalidar os caches e mostrar notificação
       if (data?.updated > 0) {

@@ -33,9 +33,18 @@ export function AdminAppointmentCard({ appointment, onClick }: AdminAppointmentC
   // Check if appointment is in the past and still marked as "agendado"
   const isPastAndPending = appointment.status === "agendado" && 
     isInPast(appointment.data, appointment.hora);
+    
+  // Handle card click with immediate loading state update
+  const handleCardClick = () => {
+    console.log("Clicando em agendamento:", appointment.id, isPastAndPending ? "(agendamento passado)" : "");
+    onClick();
+  };
 
   return (
-    <Card className="overflow-hidden hover:shadow transition-shadow duration-200 cursor-pointer" onClick={onClick}>
+    <Card 
+      className="overflow-hidden hover:shadow transition-shadow duration-200 cursor-pointer" 
+      onClick={handleCardClick}
+    >
       <CardContent className="p-0">
         <div className="flex flex-col md:flex-row">
           {/* Time section */}
@@ -83,8 +92,15 @@ export function AdminAppointmentCard({ appointment, onClick }: AdminAppointmentC
                   {formatCurrency(appointment.servico.valor)}
                 </div>
                 
-                <Button size="sm" className="md:self-stretch" onClick={onClick}>
-                  Gerenciar
+                <Button 
+                  size="sm" 
+                  className={`md:self-stretch ${isPastAndPending ? 'bg-amber-500 hover:bg-amber-600' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCardClick();
+                  }}
+                >
+                  {isPastAndPending ? 'Atualizar Agora' : 'Gerenciar'}
                 </Button>
               </div>
             </div>

@@ -41,6 +41,7 @@ export function AppointmentList({
   
   // Executar auto-complete quando o componente montar
   useEffect(() => {
+    console.log("🔍 AppointmentList montado - executando auto-complete");
     runAutoComplete();
   }, []);
 
@@ -102,7 +103,7 @@ export function AppointmentList({
         // Adicionar um pequeno atraso para garantir que o estado visual seja atualizado
         setTimeout(() => {
           onAppointmentUpdated();
-        }, 100);
+        }, 300);
       }
     } catch (error) {
       console.error("Error handling action:", error);
@@ -117,7 +118,7 @@ export function AppointmentList({
       // Adicionar um pequeno atraso para garantir que o estado visual seja atualizado
       setTimeout(() => {
         onAppointmentUpdated();
-      }, 100);
+      }, 300);
     }
   };
 
