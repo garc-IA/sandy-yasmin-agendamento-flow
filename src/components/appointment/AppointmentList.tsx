@@ -39,11 +39,11 @@ export function AppointmentList({
   // Auto-complete hook para verificar agendamentos passados
   const { runAutoComplete } = useAutoCompleteAppointments();
   
-  // Executar auto-complete quando o componente montar
+  // Executar auto-complete quando o componente montar e quando appointments mudar
   useEffect(() => {
-    console.log("🔍 AppointmentList montado - executando auto-complete");
+    console.log("🔍 AppointmentList montado ou appointments atualizados - executando auto-complete");
     runAutoComplete();
-  }, []);
+  }, [appointments]);
 
   // Group appointments by status
   const { groupedAppointments, isEmpty } = useAppointmentGrouper({ 

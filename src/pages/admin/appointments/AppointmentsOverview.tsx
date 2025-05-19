@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CalendarView } from "@/components/appointment/admin/CalendarView";
 import { AppointmentAlerts } from "@/components/appointment/admin/AppointmentAlerts";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -10,7 +10,13 @@ const AppointmentsOverview = () => {
   const [view, setView] = useState<string>("calendar");
   
   // Initialize auto-completion for past appointments
-  useAutoCompleteAppointments();
+  const { runAutoComplete, lastRunTime } = useAutoCompleteAppointments();
+  
+  // Forçar a verificação de agendamentos antigos quando a página for carregada
+  useEffect(() => {
+    console.log("🔄 AppointmentsOverview montado - verificando agendamentos antigos");
+    runAutoComplete();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -18,6 +24,11 @@ const AppointmentsOverview = () => {
         <h1 className="text-3xl font-bold tracking-tight">Visão Geral de Agendamentos</h1>
         <p className="text-muted-foreground">
           Visualize e gerencie todos os agendamentos em um só lugar
+          {lastRunTime && (
+            <span className="text-xs ml-2">
+              (Última verificação: {lastRunTime.toLocaleTimeString()})
+            </span>
+          )}
         </p>
       </div>
 

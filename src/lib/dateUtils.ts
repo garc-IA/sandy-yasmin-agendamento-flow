@@ -18,11 +18,12 @@ export function isInPast(dateStr: string, timeStr: string): boolean {
     const [hours, minutes] = timeStr.split(':').map(Number);
     
     // Criar a data do agendamento no fuso horário de Brasília (UTC-3)
+    // Adicionamos 3 horas ao horário para converter de Brasília para UTC
     const appointmentDate = new Date(Date.UTC(year, month - 1, day, hours + 3, minutes));
     
     console.log(`Verificando se data está no passado:
     - Data atual (UTC): ${now.toISOString()}
-    - Data do agendamento ajustado para Brasília: ${appointmentDate.toISOString()}
+    - Data do agendamento ajustado para UTC: ${appointmentDate.toISOString()}
     - Resultado: ${now > appointmentDate ? 'SIM' : 'NÃO'}`);
     
     // Comparar as datas diretamente
@@ -92,5 +93,25 @@ export function formatDateTimeForWhatsApp(dateStr: string, timeStr: string): str
   } catch (e) {
     console.error('Erro ao formatar data e hora para WhatsApp:', e);
     return '';
+  }
+}
+
+/**
+ * Converte uma string de data e hora para um objeto Date no UTC
+ * @param dateStr Data no formato YYYY-MM-DD
+ * @param timeStr Hora no formato HH:MM
+ * @returns Objeto Date no UTC
+ */
+export function dateTimeToUTC(dateStr: string, timeStr: string): Date | null {
+  try {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    
+    // Criar a data no fuso horário UTC
+    // Ajustar para o fuso horário de Brasília (UTC-3)
+    return new Date(Date.UTC(year, month - 1, day, hours + 3, minutes));
+  } catch (e) {
+    console.error('Erro ao converter data e hora para UTC:', e);
+    return null;
   }
 }

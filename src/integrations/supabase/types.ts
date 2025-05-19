@@ -465,6 +465,25 @@ export type Database = {
       }
     }
     Functions: {
+      add_appointment_history: {
+        Args: {
+          p_agendamento_id: string
+          p_tipo: string
+          p_descricao: string
+          p_novo_valor?: string
+        }
+        Returns: string
+      }
+      auto_complete_past_appointments: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          appointment_id: string
+          appointment_date: string
+          appointment_time: string
+          status: string
+          updated: boolean
+        }[]
+      }
       criar_cliente: {
         Args: {
           p_nome: string

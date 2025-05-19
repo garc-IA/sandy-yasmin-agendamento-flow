@@ -16,11 +16,14 @@ Deno.serve(async (req) => {
   }
   
   try {
+    console.log('🕒 Cron job iniciado: executando auto-complete-appointments');
+    
     // Get environment variables
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Missing Supabase environment variables");
       return new Response(
         JSON.stringify({ error: 'Missing Supabase environment variables' }),
         { status: 500, headers }
@@ -30,26 +33,29 @@ Deno.serve(async (req) => {
     // Create Supabase client with admin privileges
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    console.log('🕒 Cron job iniciado: executando auto-complete-appointments');
-    
-    // Call the auto-complete-appointments function
-    const { data, error } = await supabase.functions.invoke('auto-complete-appointments');
+    // Use the database function directly for better performance and reliability
+    const { data, error } = await supabase
+      .rpc('auto_complete_past_appointments');
     
     if (error) {
-      console.error('Erro ao chamar auto-complete-appointments:', error);
+      console.error('Erro ao executar auto_complete_past_appointments:', error);
       return new Response(
-        JSON.stringify({ error: 'Falha ao executar auto-complete' }),
+        JSON.stringify({ error: error.message }),
         { status: 500, headers }
       );
     }
-    
-    console.log('🕒 Cron job para auto-complete executado com sucesso:', data);
+
+    // Filter the results to only include updates
+    const updated = data ? data.filter((item: any) => item.updated === true) : [];
+    const totalUpdated = updated.length;
+
+    console.log(`✅ Cron job auto-complete executado: ${totalUpdated} agendamentos atualizados`);
     
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Cron job auto-complete executado', 
-        result: data,
+        updated: totalUpdated,
+        details: updated,
         timestamp: new Date().toISOString()
       }),
       { status: 200, headers }

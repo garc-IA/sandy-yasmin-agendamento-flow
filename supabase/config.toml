@@ -72,3 +72,4 @@ verify_jwt = false
 # Scheduler cron function to run auto-complete regularly
 [functions.cron-auto-complete]
 verify_jwt = false
+
