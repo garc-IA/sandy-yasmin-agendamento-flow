@@ -1,4 +1,3 @@
-
 import { format, isAfter, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -17,13 +16,12 @@ export function isInPast(dateStr: string, timeStr: string): boolean {
     const [year, month, day] = dateStr.split('-').map(Number);
     const [hours, minutes] = timeStr.split(':').map(Number);
     
-    // Criar a data do agendamento no fuso horário de Brasília (UTC-3)
-    // Adicionamos 3 horas ao horário para converter de Brasília para UTC
-    const appointmentDate = new Date(Date.UTC(year, month - 1, day, hours + 3, minutes));
+    // Criar a data do agendamento no fuso horário local do Brasil (UTC-3)
+    const appointmentDate = new Date(year, month - 1, day, hours, minutes);
     
     console.log(`Verificando se data está no passado:
-    - Data atual (UTC): ${now.toISOString()}
-    - Data do agendamento ajustado para UTC: ${appointmentDate.toISOString()}
+    - Data atual: ${now.toISOString()}
+    - Data do agendamento: ${appointmentDate.toISOString()}
     - Resultado: ${now > appointmentDate ? 'SIM' : 'NÃO'}`);
     
     // Comparar as datas diretamente

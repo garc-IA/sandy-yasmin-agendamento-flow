@@ -34,7 +34,8 @@ Deno.serve(async (req) => {
     // Create Supabase client with admin privileges
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Use the new database function to auto-complete past appointments
+    // Use the database function to auto-complete past appointments
+    console.log('Executando função SQL auto_complete_past_appointments via RPC...');
     const { data, error } = await supabase
       .rpc('auto_complete_past_appointments');
     
@@ -51,6 +52,7 @@ Deno.serve(async (req) => {
     const totalUpdated = updated.length;
 
     console.log(`✅ Auto-complete completed: ${totalUpdated} appointments were updated`);
+    console.log('Updated appointments details:', updated);
     
     return new Response(
       JSON.stringify({ 
@@ -65,7 +67,7 @@ Deno.serve(async (req) => {
   } catch (err) {
     console.error('Unexpected error in auto-complete function:', err);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: String(err) }),
       { status: 500, headers }
     );
   }

@@ -14,10 +14,10 @@ export function isInPast(dateStr: string, timeStr: string): boolean {
     const [year, month, day] = dateStr.split('-').map(Number);
     const [hours, minutes] = timeStr.split(':').map(Number);
     
-    // Criar a data do agendamento no fuso horário UTC
-    // Ajustar para o fuso horário de Brasília (UTC-3)
-    // Adicionamos 3 horas ao horário UTC para corresponder à hora de Brasília
-    const appointmentDate = new Date(Date.UTC(year, month - 1, day, hours + 3, minutes));
+    // Criar a data do agendamento no fuso horário local do Brasil (UTC-3)
+    // Observe que não precisamos adicionar 3 horas porque queremos comparar 
+    // com o horário local do Brasil
+    const appointmentDate = new Date(year, month - 1, day, hours, minutes);
     
     console.log(`Comparando:
     - Data/hora agendamento: ${dateStr} ${timeStr} (${appointmentDate.toISOString()})

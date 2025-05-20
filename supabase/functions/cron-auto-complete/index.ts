@@ -31,9 +31,11 @@ Deno.serve(async (req) => {
     }
 
     // Create Supabase client with admin privileges
+    // Importante: Usar o service_role aqui para ter permissões de bypassar RLS
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Use the database function directly for better performance and reliability
+    console.log('Executando função SQL auto_complete_past_appointments via RPC...');
     const { data, error } = await supabase
       .rpc('auto_complete_past_appointments');
     
@@ -50,6 +52,7 @@ Deno.serve(async (req) => {
     const totalUpdated = updated.length;
 
     console.log(`✅ Cron job auto-complete executado: ${totalUpdated} agendamentos atualizados`);
+    console.log('Detalhes dos agendamentos atualizados:', updated);
     
     return new Response(
       JSON.stringify({ 
@@ -64,7 +67,7 @@ Deno.serve(async (req) => {
   } catch (err) {
     console.error('Erro inesperado no cron job:', err);
     return new Response(
-      JSON.stringify({ error: 'Erro interno do servidor' }),
+      JSON.stringify({ error: 'Erro interno do servidor', details: String(err) }),
       { status: 500, headers }
     );
   }

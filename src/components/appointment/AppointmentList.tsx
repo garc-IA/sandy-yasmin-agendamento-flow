@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { AppointmentWithDetails } from "@/types/appointment.types";
 import { AppointmentStatusSection } from "./list/AppointmentStatusSection";
@@ -8,6 +7,9 @@ import { useAppointmentGrouper } from "./list/AppointmentGrouper";
 import { useUpdateAppointmentStatus } from "@/hooks/useUpdateAppointmentStatus";
 import { useToast } from "@/hooks/use-toast";
 import { useAutoCompleteAppointments } from "@/hooks/appointment/useAutoCompleteAppointments";
+import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Loader2, RefreshCw } from "lucide-react";
 
 interface AppointmentListProps {
   appointments: AppointmentWithDetails[];
@@ -31,19 +33,41 @@ export function AppointmentList({
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [needsRefresh, setNeedsRefresh] = useState(false);
   
   // Status update hook
   const { updateStatus, deleteAppointment, isLoading } = useUpdateAppointmentStatus();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Auto-complete hook para verificar agendamentos passados
-  const { runAutoComplete } = useAutoCompleteAppointments();
+  const { runAutoComplete, isRunning } = useAutoCompleteAppointments();
   
-  // Executar auto-complete quando o componente montar e quando appointments mudar
+  // Executar auto-complete quando o componente montar
   useEffect(() => {
-    console.log("🔍 AppointmentList montado ou appointments atualizados - executando auto-complete");
-    runAutoComplete();
-  }, [appointments]);
+    console.log("🔍 AppointmentList montado - executando auto-complete");
+    // Pequeno atraso para garantir que todos os componentes estejam montados
+    const timer = setTimeout(() => {
+      runAutoComplete().then(() => {
+        // Se houve atualização, forçar um refetch
+        queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      });
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // Verificar novamente quando appointments mudar significativamente
+  useEffect(() => {
+    // Apenas verificar se appointments está definido e mudou de vazio/não-vazio
+    if (appointments && needsRefresh) {
+      console.log("🔁 Detectada mudança na lista de agendamentos - verificando auto-complete");
+      setNeedsRefresh(false);
+      runAutoComplete().then(() => {
+        onAppointmentUpdated();
+      });
+    }
+  }, [needsRefresh]);
 
   // Group appointments by status
   const { groupedAppointments, isEmpty } = useAppointmentGrouper({ 
@@ -73,6 +97,16 @@ export function AppointmentList({
     setIsConfirmDialogOpen(true);
   };
 
+  // Função para forçar verificação manual
+  const handleManualCheck = async () => {
+    await runAutoComplete();
+    // Marcar que precisa de atualização
+    setNeedsRefresh(true);
+    // Forçar refresh
+    await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    onAppointmentUpdated();
+  };
+
   // Handle confirmation of status update
   const handleConfirmAction = async () => {
     if (!statusAction) return;
@@ -100,6 +134,9 @@ export function AppointmentList({
         setStatusAction(null);
         setCancelReason('');
         
+        // Marcar que precisa de atualização
+        setNeedsRefresh(true);
+        
         // Adicionar um pequeno atraso para garantir que o estado visual seja atualizado
         setTimeout(() => {
           onAppointmentUpdated();
@@ -115,6 +152,9 @@ export function AppointmentList({
     if (refreshData && onAppointmentUpdated) {
       console.log("Refreshing appointments data after dialog action");
       
+      // Marcar que precisa de atualização
+      setNeedsRefresh(true);
+      
       // Adicionar um pequeno atraso para garantir que o estado visual seja atualizado
       setTimeout(() => {
         onAppointmentUpdated();
@@ -126,13 +166,54 @@ export function AppointmentList({
   if (isEmpty) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        Nenhum agendamento encontrado.
+        <p>Nenhum agendamento encontrado.</p>
+        <div className="mt-4">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleManualCheck}
+            disabled={isRunning}
+          >
+            {isRunning ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Verificando...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Verificar Agendamentos Antigos
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end mb-4">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={handleManualCheck}
+          disabled={isRunning}
+        >
+          {isRunning ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Verificando...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Verificar Agendamentos Antigos
+            </>
+          )}
+        </Button>
+      </div>
+      
       {/* Active Appointments - only show if filter is "all" or "agendado" */}
       {shouldShowSection("agendado") && (
         <AppointmentStatusSection
