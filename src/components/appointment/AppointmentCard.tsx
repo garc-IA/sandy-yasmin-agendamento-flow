@@ -1,4 +1,5 @@
 
+import React from "react";
 import { format, parseISO, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -24,15 +25,15 @@ interface AppointmentCardProps {
   hideActions?: boolean;
 }
 
-export function AppointmentCard({ 
+function AppointmentCardComponent({ 
   appointment, 
   onShowDetails, 
   onActionClick, 
   isLoading,
   hideActions = false
 }: AppointmentCardProps) {
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = React.useMemo(() => {
+    switch (appointment.status) {
       case "agendado":
         return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">Agendado</Badge>;
       case "concluido":
@@ -40,11 +41,11 @@ export function AppointmentCard({
       case "cancelado":
         return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">Cancelado</Badge>;
       default:
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">{status}</Badge>;
+        return <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">{appointment.status}</Badge>;
     }
-  };
+  }, [appointment.status]);
 
-  const getCardClassName = () => {
+  const cardClassName = React.useMemo(() => {
     const baseClass = "p-4 border rounded-lg shadow-sm transition-all";
     
     switch (appointment.status) {
@@ -57,19 +58,41 @@ export function AppointmentCard({
       default:
         return baseClass;
     }
-  };
+  }, [appointment.status]);
   
   // Check if appointment is in the past and still marked as "agendado"
-  const isPastAndPending = appointment.status === "agendado" && 
-    isInPast(appointment.data, appointment.hora);
+  const isPastAndPending = React.useMemo(() => 
+    appointment.status === "agendado" && isInPast(appointment.data, appointment.hora),
+    [appointment.status, appointment.data, appointment.hora]
+  );
+
+  const formattedDate = React.useMemo(() => {
+    try {
+      return isToday(parseISO(appointment.data)) ? "Hoje" : format(parseISO(appointment.data), "dd/MM/yyyy");
+    } catch {
+      return appointment.data;
+    }
+  }, [appointment.data]);
+
+  const handleShowDetails = React.useCallback(() => {
+    onShowDetails(appointment);
+  }, [onShowDetails, appointment]);
+
+  const handleCompleteClick = React.useCallback(() => {
+    onActionClick(appointment.id, "complete");
+  }, [onActionClick, appointment.id]);
+
+  const handleCancelClick = React.useCallback(() => {
+    onActionClick(appointment.id, "cancel");
+  }, [onActionClick, appointment.id]);
 
   return (
-    <div className={getCardClassName()}>
+    <div className={cardClassName}>
       <div className="flex flex-col sm:flex-row justify-between">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <h3 className="font-medium">{appointment.cliente.nome}</h3>
-            {getStatusBadge(appointment.status)}
+            {getStatusBadge}
           </div>
           
           <p className="text-sm text-muted-foreground">
@@ -100,9 +123,7 @@ export function AppointmentCard({
 
         <div className="mt-4 sm:mt-0 text-right">
           <div className="space-y-1">
-            <p className="text-sm">
-              {isToday(parseISO(appointment.data)) ? "Hoje" : format(parseISO(appointment.data), "dd/MM/yyyy")}
-            </p>
+            <p className="text-sm">{formattedDate}</p>
             <p className="text-lg font-bold">{appointment.hora}</p>
             <p className="text-xs text-muted-foreground">Com {appointment.profissional.nome}</p>
           </div>
@@ -114,7 +135,7 @@ export function AppointmentCard({
                   size="sm"
                   variant="outline"
                   className={`text-green-600 border-green-600 hover:bg-green-50 ${isPastAndPending ? 'animate-pulse' : ''}`}
-                  onClick={() => onActionClick(appointment.id, "complete")}
+                  onClick={handleCompleteClick}
                 >
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Concluir
@@ -124,7 +145,7 @@ export function AppointmentCard({
                   size="sm"
                   variant="outline"
                   className="text-red-600 border-red-600 hover:bg-red-50"
-                  onClick={() => onActionClick(appointment.id, "cancel")}
+                  onClick={handleCancelClick}
                 >
                   <XCircle className="h-4 w-4 mr-1" />
                   Cancelar
@@ -142,7 +163,7 @@ export function AppointmentCard({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => onShowDetails(appointment)}
+              onClick={handleShowDetails}
             >
               Detalhes <ArrowRight className="h-3 w-3 ml-1" />
             </Button>
@@ -152,3 +173,5 @@ export function AppointmentCard({
     </div>
   );
 }
+
+export const AppointmentCard = React.memo(AppointmentCardComponent);

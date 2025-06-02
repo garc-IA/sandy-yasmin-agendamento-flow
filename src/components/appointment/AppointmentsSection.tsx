@@ -1,4 +1,5 @@
 
+import React from "react";
 import { AppointmentWithDetails } from "@/types/appointment.types";
 import { AppointmentCard } from "./AppointmentCard";
 
@@ -12,7 +13,7 @@ interface AppointmentsSectionProps {
   hideActions?: boolean;
 }
 
-export function AppointmentsSection({
+function AppointmentsSectionComponent({
   title,
   titleClassName,
   appointments,
@@ -44,3 +45,5 @@ export function AppointmentsSection({
     </div>
   );
 }
+
+export const AppointmentsSection = React.memo(AppointmentsSectionComponent);

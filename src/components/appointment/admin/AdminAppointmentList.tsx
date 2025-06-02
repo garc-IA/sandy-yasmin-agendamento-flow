@@ -5,9 +5,11 @@ import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { AppointmentWithDetails } from "@/types/appointment.types";
 import { useAppointmentsData } from "@/hooks/appointment/useAppointmentsData";
+import { useAppointmentLoadingState } from "@/hooks/appointment/useAppointmentLoadingState";
 import { AdminAppointmentFilters } from "./AdminAppointmentFilters";
 import { AdminAppointmentCard } from "./AdminAppointmentCard";
 import { AdminAppointmentDialogs } from "./AdminAppointmentDialogs";
+import { AppointmentListSkeleton } from "../skeleton/AppointmentListSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,6 +49,13 @@ export function AdminAppointmentList() {
   
   // Manual refresh indicator
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Loading state management
+  const { shouldShowSkeleton, shouldShowError, shouldShowEmpty } = useAppointmentLoadingState({
+    isLoading: isLoading || isRefreshing,
+    appointments,
+    error
+  });
 
   // When statusFilter changes, update the tab
   useEffect(() => {
@@ -169,13 +178,13 @@ export function AdminAppointmentList() {
               </TabsList>
             </div>
             
-            {error ? (
+            {shouldShowError ? (
               <div className="text-center py-8 text-red-500 px-6">
                 Erro ao carregar agendamentos. Por favor, tente novamente.
               </div>
-            ) : isLoading || isRefreshing ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            ) : shouldShowSkeleton ? (
+              <div className="px-6 py-2">
+                <AppointmentListSkeleton count={4} />
               </div>
             ) : (
               <>

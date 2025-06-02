@@ -1,13 +1,16 @@
 
+import React from "react";
 import { AppointmentWithDetails } from "@/types/appointment.types";
 import { useAppointmentGrouper } from "./list/AppointmentGrouper";
 import { useAppointmentAutoComplete } from "./list/hooks/useAppointmentAutoComplete";
 import { useAppointmentDialogs } from "./list/hooks/useAppointmentDialogs";
 import { useAppointmentActions } from "./list/hooks/useAppointmentActions";
+import { useAppointmentLoadingState } from "@/hooks/appointment/useAppointmentLoadingState";
 import { EmptyState } from "./list/components/EmptyState";
 import { ManualCheckButton } from "./list/components/ManualCheckButton";
 import { AppointmentSections } from "./list/components/AppointmentSections";
 import { AppointmentDialogs } from "./list/components/AppointmentDialogs";
+import { AppointmentListSkeleton } from "./skeleton/AppointmentListSkeleton";
 
 interface AppointmentListProps {
   appointments: AppointmentWithDetails[];
@@ -16,7 +19,7 @@ interface AppointmentListProps {
   statusFilter?: string;
 }
 
-export function AppointmentList({
+function AppointmentListComponent({
   appointments,
   onAppointmentUpdated = () => {},
   showAll = false,
@@ -51,19 +54,37 @@ export function AppointmentList({
   // Group appointments by status
   const { isEmpty } = useAppointmentGrouper({ appointments, showAll });
 
+  // Loading state management
+  const { shouldShowSkeleton, shouldShowEmpty, shouldShowContent } = useAppointmentLoadingState({
+    isLoading: isRunning,
+    appointments,
+  });
+
   // Handle confirmation of status update
-  const onConfirmAction = async () => {
+  const onConfirmAction = React.useCallback(async () => {
     await handleConfirmAction(statusAction, cancelReason);
-  };
+  }, [handleConfirmAction, statusAction, cancelReason]);
 
   // Handle details dialog close
-  const onDetailsClose = () => {
+  const onDetailsClose = React.useCallback(() => {
     setIsDetailsDialogOpen(false);
     setSelectedAppointment(null);
-  };
+  }, [setIsDetailsDialogOpen, setSelectedAppointment]);
+
+  // Show skeleton while running auto-complete
+  if (shouldShowSkeleton) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-end mb-4">
+          <ManualCheckButton onClick={handleManualCheck} isRunning={isRunning} />
+        </div>
+        <AppointmentListSkeleton count={5} />
+      </div>
+    );
+  }
 
   // If no appointments, show empty state
-  if (isEmpty) {
+  if (shouldShowEmpty || isEmpty) {
     return <EmptyState onManualCheck={handleManualCheck} isRunning={isRunning} />;
   }
 
@@ -98,3 +119,5 @@ export function AppointmentList({
     </div>
   );
 }
+
+export const AppointmentList = React.memo(AppointmentListComponent);
