@@ -25,9 +25,10 @@ export function AppointmentList({
   // Auto-complete management
   const { isRunning, handleManualCheck, markNeedsRefresh } = useAppointmentAutoComplete(onAppointmentUpdated);
   
-  // Dialog state management
+  // Dialog state management - now including setSelectedAppointment
   const {
     selectedAppointment,
+    setSelectedAppointment,
     statusAction,
     isConfirmDialogOpen,
     isDetailsDialogOpen,
