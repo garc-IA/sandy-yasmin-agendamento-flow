@@ -43,6 +43,11 @@ const AdminSidebar = ({ onItemClick }: AdminSidebarProps) => {
       icon: <User size={20} />,
       path: "/admin/perfil",
     },
+    {
+      title: "Ferramentas",
+      icon: <Settings size={20} />,
+      path: "/admin/ferramentas",
+    },
   ];
 
   return (
