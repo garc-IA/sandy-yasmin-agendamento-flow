@@ -1,10 +1,7 @@
 
-
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { useAppointmentDatabase } from './appointment/useAppointmentDatabase';
-import { useAppointmentCache } from './appointment/useAppointmentCache';
-import { useAppointmentNotifications } from './appointment/useAppointmentNotifications';
+import { useAppointmentOperations } from './appointment/useAppointmentOperations';
 import { 
   logAppointmentAction, 
   logAppointmentError, 
@@ -15,26 +12,12 @@ import {
 
 export const useRescheduleAppointment = () => {
   const [isLoading, setIsLoading] = useState(false);
-
-  const { 
-    rescheduleAppointment, 
-    createHistoryEntry 
-  } = useAppointmentDatabase();
-
-  const { 
-    forceRefetchAll 
-  } = useAppointmentCache();
-
-  const { 
-    showRescheduleSuccess, 
-    showRescheduleError,
-    showHistoryWarning 
-  } = useAppointmentNotifications();
+  const { reschedule: rescheduleOperation } = useAppointmentOperations();
 
   /**
    * Reschedules an appointment to a new date and time
    */
-  const reschedule = async (
+  const rescheduleAppointment = async (
     appointmentId: string,
     date: Date,
     time: string,
@@ -45,13 +28,11 @@ export const useRescheduleAppointment = () => {
     
     // Validate appointment ID
     if (!validateAppointmentId(appointmentId)) {
-      showRescheduleError("ID de agendamento inválido. Por favor, tente novamente.");
       return false;
     }
 
     // Validate other required parameters
     if (!date || !time || !professionalId) {
-      showRescheduleError("Data, hora e profissional são obrigatórios para reagendamento.");
       return false;
     }
 
@@ -59,51 +40,11 @@ export const useRescheduleAppointment = () => {
     traceAppointmentFlow("Iniciando reagendamento", appointmentId, { date: format(date, 'yyyy-MM-dd'), time });
 
     try {
-      // Update the appointment in the database using our refactored hook
-      const result = await rescheduleAppointment(
-        appointmentId,
-        date,
-        time
-      );
-
-      if (!result.success) {
-        logAppointmentError("Falha ao reagendar agendamento", appointmentId, result.error);
-        showRescheduleError(result.error?.message || "Não foi possível reagendar o agendamento.");
-        return false;
-      }
-
-      logAppointmentAction("Reagendamento bem-sucedido", appointmentId, { 
-        date: format(date, 'yyyy-MM-dd'), 
-        time 
-      });
-
-      // Create history entry for the rescheduling using our refactored hook
-      const formattedDate = format(date, 'yyyy-MM-dd');
-      
-      // Fix: Ensure we're passing the correct number of arguments to createHistoryEntry
-      // Check the signature in useAppointmentDatabase.ts and adjust accordingly
-      const historyResult = await createHistoryEntry(
-        appointmentId,
-        'reagendado',
-        'Agendamento reagendado',
-        `${formattedDate} ${time}`,
-        note
-      );
-
-      if (!historyResult.success) {
-        logAppointmentError("Erro ao registrar histórico de reagendamento", appointmentId, historyResult.error);
-        showHistoryWarning();
-      }
-
-      // Show success notification and update cache
-      showRescheduleSuccess();
-      await forceRefetchAll();
-      
-      return true;
+      const success = await rescheduleOperation(appointmentId, date, time);
+      return success;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
       logAppointmentError("Erro inesperado ao reagendar", appointmentId, error);
-      showRescheduleError(`Erro: ${errorMessage}`);
       return false;
     } finally {
       setIsLoading(false);
@@ -111,8 +52,7 @@ export const useRescheduleAppointment = () => {
   };
 
   return {
-    rescheduleAppointment: reschedule,
+    rescheduleAppointment,
     isLoading
   };
 };
-

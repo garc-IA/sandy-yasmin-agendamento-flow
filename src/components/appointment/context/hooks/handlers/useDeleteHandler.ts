@@ -1,7 +1,7 @@
 
 import { useCallback } from "react";
 import { AppointmentWithDetails } from "@/types/appointment.types";
-import { useUpdateAppointmentStatus } from "@/hooks/useUpdateAppointmentStatus";
+import { useAppointmentOperations } from "@/hooks/appointment/useAppointmentOperations";
 import { useToast } from "@/hooks/use-toast";
 import { logAppointmentAction, logAppointmentError } from "@/utils/debugUtils";
 
@@ -17,7 +17,7 @@ export function useDeleteHandler({
   handleAppointmentUpdated
 }: UseDeleteHandlerProps) {
   const { toast } = useToast();
-  const { deleteAppointment } = useUpdateAppointmentStatus();
+  const { deleteAppointment } = useAppointmentOperations();
 
   const handleDelete = useCallback(async (): Promise<boolean> => {
     if (!selectedAppointment || !validateAppointmentExists(selectedAppointment.id)) {
@@ -33,15 +33,9 @@ export function useDeleteHandler({
     logAppointmentAction('Excluindo agendamento permanentemente', selectedAppointment.id);
 
     try {
-      // Use the imported deleteAppointment function from useUpdateAppointmentStatus
       const success = await deleteAppointment(selectedAppointment.id);
       
       if (success) {
-        toast({
-          title: 'Agendamento excluído',
-          description: 'O agendamento foi excluído permanentemente com sucesso.',
-        });
-        
         handleAppointmentUpdated();
         return true;
       } else {

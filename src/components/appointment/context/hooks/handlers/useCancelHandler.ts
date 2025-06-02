@@ -1,6 +1,6 @@
 
 import { useCallback } from "react";
-import { useUpdateAppointmentStatus } from "@/hooks/useUpdateAppointmentStatus";
+import { useAppointmentOperations } from "@/hooks/appointment/useAppointmentOperations";
 import { useToast } from "@/hooks/use-toast";
 import { logAppointmentAction, logAppointmentError } from "@/utils/debugUtils";
 
@@ -20,7 +20,7 @@ export function useCancelHandler({
   handleAppointmentUpdated
 }: UseCancelHandlerProps) {
   const { toast } = useToast();
-  const { updateStatus } = useUpdateAppointmentStatus();
+  const { updateStatus } = useAppointmentOperations();
 
   const handleCancel = useCallback(async (): Promise<boolean> => {
     if (!appointmentToCancel || !validateAppointmentExists(appointmentToCancel)) {
@@ -42,11 +42,6 @@ export function useCancelHandler({
       const success = await updateStatus(appointmentToCancel, 'cancelado', reasonToUse);
       
       if (success) {
-        toast({
-          title: 'Agendamento cancelado',
-          description: 'O agendamento foi cancelado com sucesso.',
-        });
-        
         closeCancelDialog();
         handleAppointmentUpdated();
         return true;

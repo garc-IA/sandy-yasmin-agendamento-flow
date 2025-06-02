@@ -1,7 +1,7 @@
 
 import { useCallback } from "react";
-import { AppointmentWithDetails, AppointmentStatus } from "@/types/appointment.types";
-import { useUpdateAppointmentStatus } from "@/hooks/useUpdateAppointmentStatus";
+import { AppointmentStatus } from "@/types/appointment.types";
+import { useAppointmentOperations } from "@/hooks/appointment/useAppointmentOperations";
 import { useToast } from "@/hooks/use-toast";
 import { logAppointmentAction, logAppointmentError } from "@/utils/debugUtils";
 import { useAppointmentNotifications } from "@/hooks/appointment/useAppointmentNotifications";
@@ -21,7 +21,7 @@ export function useStatusUpdateHandler({
   handleAppointmentUpdated
 }: UseStatusUpdateHandlerProps) {
   const { toast } = useToast();
-  const { updateStatus } = useUpdateAppointmentStatus();
+  const { updateStatus } = useAppointmentOperations();
   const { showStatusUpdateSuccess, showStatusUpdateError } = useAppointmentNotifications();
 
   const handleStatusUpdate = useCallback(async (): Promise<boolean> => {
@@ -55,11 +55,9 @@ export function useStatusUpdateHandler({
     });
 
     try {
-      // Ensure we're passing the correctly typed status
       const success = await updateStatus(appointmentToUpdate.id, appointmentToUpdate.status);
       
       if (success) {
-        showStatusUpdateSuccess(appointmentToUpdate.status);
         closeStatusUpdateDialog();
         handleAppointmentUpdated();
         return true;
@@ -76,7 +74,7 @@ export function useStatusUpdateHandler({
       });
       return false;
     }
-  }, [appointmentToUpdate, validateAppointmentExists, updateStatus, showStatusUpdateSuccess, showStatusUpdateError, toast, closeStatusUpdateDialog, handleAppointmentUpdated]);
+  }, [appointmentToUpdate, validateAppointmentExists, updateStatus, showStatusUpdateError, toast, closeStatusUpdateDialog, handleAppointmentUpdated]);
 
   // Helper function to get appointment details
   const getAppointmentDetails = async (id: string) => {

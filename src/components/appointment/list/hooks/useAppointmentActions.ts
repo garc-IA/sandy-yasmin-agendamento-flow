@@ -1,12 +1,12 @@
 
-import { useUpdateAppointmentStatus } from "@/hooks/useUpdateAppointmentStatus";
+import { useAppointmentOperations } from "@/hooks/appointment/useAppointmentOperations";
 
 export function useAppointmentActions(
   onAppointmentUpdated: () => void,
   markNeedsRefresh: () => void,
   closeDialogs: () => void
 ) {
-  const { updateStatus, deleteAppointment, isLoading } = useUpdateAppointmentStatus();
+  const { updateStatus, deleteAppointment, isLoading } = useAppointmentOperations();
 
   const handleConfirmAction = async (
     statusAction: { id: string; action: "complete" | "cancel" | "delete" | null; } | null,
