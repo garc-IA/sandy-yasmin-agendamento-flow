@@ -21,15 +21,18 @@ const AdminLogin = () => {
     setIsLoading(true);
     
     try {
+      console.log('Tentando fazer login com:', email);
       const { error } = await signIn(email, password);
       
       if (error) {
+        console.error('Erro de login:', error);
         toast({
           title: "Erro de autenticação",
-          description: "Email ou senha inválidos. Tente novamente.",
+          description: "Email ou senha inválidos. Use: admin@studio.com / admin123",
           variant: "destructive"
         });
       } else {
+        console.log('Login realizado com sucesso');
         toast({
           title: "Login bem-sucedido",
           description: "Bem-vindo ao painel administrativo."
@@ -37,6 +40,7 @@ const AdminLogin = () => {
         navigate("/admin");
       }
     } catch (error) {
+      console.error('Erro no processo de login:', error);
       toast({
         title: "Erro ao fazer login",
         description: "Ocorreu um erro durante o login. Tente novamente.",
@@ -51,9 +55,9 @@ const AdminLogin = () => {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Admin Login</CardTitle>
+          <CardTitle className="text-2xl">Studio Sandy Yasmin</CardTitle>
           <CardDescription>
-            Entre com suas credenciais de administrador
+            Acesso ao painel administrativo
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -78,11 +82,16 @@ const AdminLogin = () => {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="admin123"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+            </div>
+            <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded">
+              <strong>Credenciais de teste:</strong><br />
+              Email: admin@studio.com<br />
+              Senha: admin123
             </div>
           </CardContent>
           <CardFooter>
@@ -102,6 +111,11 @@ const AdminLogin = () => {
             </Button>
           </CardFooter>
         </form>
+        <div className="text-center text-sm text-gray-500 pb-4">
+          <Link to="/agendar" className="text-primary hover:underline">
+            Voltar para a página de agendamentos
+          </Link>
+        </div>
       </Card>
     </div>
   );
