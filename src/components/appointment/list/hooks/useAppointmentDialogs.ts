@@ -33,6 +33,7 @@ export function useAppointmentDialogs() {
 
   return {
     selectedAppointment,
+    setSelectedAppointment, // Now exporting setSelectedAppointment
     statusAction,
     isConfirmDialogOpen,
     isDetailsDialogOpen,
