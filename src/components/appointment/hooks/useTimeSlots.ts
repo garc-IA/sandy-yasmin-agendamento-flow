@@ -27,7 +27,7 @@ export const useTimeSlots = ({
 
     /**
      * Generates available time slots based on professional's working hours
-     * and existing appointments
+     * and existing appointments, ensuring service duration is respected
      */
     const generateTimeSlots = () => {
       const { horario_inicio, horario_fim } = professional;
@@ -39,31 +39,51 @@ export const useTimeSlots = ({
       const [startHour, startMinute] = horario_inicio.split(':').map(Number);
       const [endHour, endMinute] = horario_fim.split(':').map(Number);
 
+      // Calculate end time in minutes from start of day
+      const endTimeInMinutes = endHour * 60 + endMinute;
+      
       // Generate time slots
       const slots: string[] = [];
       let currentHour = startHour;
       let currentMinute = startMinute;
 
-      // Continue until we reach the end time
-      while (
-        currentHour < endHour ||
-        (currentHour === endHour && currentMinute <= endMinute - serviceDuration)
-      ) {
+      // Continue until we reach a point where adding service duration would exceed end time
+      while (true) {
+        const currentTimeInMinutes = currentHour * 60 + currentMinute;
+        const serviceEndTimeInMinutes = currentTimeInMinutes + serviceDuration;
+        
+        // Stop if service would end after professional's end time
+        if (serviceEndTimeInMinutes > endTimeInMinutes) {
+          break;
+        }
+
         // Format current time as HH:MM
         const timeSlot = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
         
-        // Check if this time is already booked
-        const isSlotBooked = appointments?.some(
-          (appointment) => appointment.hora === timeSlot
-        );
+        // Check if this time slot conflicts with existing appointments
+        const isSlotBooked = appointments?.some(appointment => {
+          if (appointment.hora === timeSlot) return true;
+          
+          // Also check if there's overlap with other appointments
+          const appointmentStart = appointment.hora.split(':').map(Number);
+          const appointmentStartMinutes = appointmentStart[0] * 60 + appointmentStart[1];
+          
+          // Assume each appointment has the same duration as the service being scheduled
+          // In a real system, you'd get this from the appointment's service
+          const appointmentEndMinutes = appointmentStartMinutes + serviceDuration;
+          
+          // Check for overlap
+          return (currentTimeInMinutes < appointmentEndMinutes && 
+                  serviceEndTimeInMinutes > appointmentStartMinutes);
+        });
 
-        // If not booked, add to available slots
+        // If not booked and doesn't conflict, add to available slots
         if (!isSlotBooked) {
           slots.push(timeSlot);
         }
 
-        // Move to next slot based on service duration
-        currentMinute += serviceDuration;
+        // Move to next slot (typically 30-minute intervals)
+        currentMinute += 30;
         while (currentMinute >= 60) {
           currentMinute -= 60;
           currentHour += 1;
@@ -71,6 +91,8 @@ export const useTimeSlots = ({
       }
       
       console.log(`Horários disponíveis: ${slots.join(', ')}`);
+      console.log(`Último horário possível para serviço de ${serviceDuration}min seria: ${Math.floor((endTimeInMinutes - serviceDuration) / 60).toString().padStart(2, '0')}:${((endTimeInMinutes - serviceDuration) % 60).toString().padStart(2, '0')}`);
+      
       return slots;
     };
 

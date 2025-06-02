@@ -79,6 +79,9 @@ export const useTimeSlots = ({
       const [startHour, startMinute] = horario_inicio.split(':').map(Number);
       const [endHour, endMinute] = horario_fim.split(':').map(Number);
 
+      // Calculate end time in minutes from start of day
+      const endTimeInMinutes = endHour * 60 + endMinute;
+      
       const slots: string[] = [];
       let currentHour = startHour;
       let currentMinute = startMinute;
@@ -92,24 +95,43 @@ export const useTimeSlots = ({
       
       console.log(`Encontrados ${professionalAppointments.length} agendamentos para o profissional no dia selecionado`);
 
-      while (
-        currentHour < endHour ||
-        (currentHour === endHour && currentMinute <= endMinute - serviceDuration)
-      ) {
+      // Continue until we reach a point where adding service duration would exceed end time
+      while (true) {
+        const currentTimeInMinutes = currentHour * 60 + currentMinute;
+        const serviceEndTimeInMinutes = currentTimeInMinutes + serviceDuration;
+        
+        // Stop if service would end after professional's end time
+        if (serviceEndTimeInMinutes > endTimeInMinutes) {
+          console.log(`Parando em ${currentHour}:${currentMinute} - serviço terminaria às ${Math.floor(serviceEndTimeInMinutes / 60)}:${(serviceEndTimeInMinutes % 60).toString().padStart(2, '0')}, após horário limite ${horario_fim}`);
+          break;
+        }
+
         const timeSlot = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
         
-        // Verificar se este horário já está agendado (apenas agendamentos ativos)
-        const isSlotBooked = professionalAppointments.some(
-          (appointment) => appointment.hora === timeSlot
-        );
+        // Verificar se este horário já está agendado ou se há conflito
+        const isSlotBooked = professionalAppointments.some(appointment => {
+          const appointmentTime = appointment.hora;
+          const [appointmentHour, appointmentMinute] = appointmentTime.split(':').map(Number);
+          const appointmentStartMinutes = appointmentHour * 60 + appointmentMinute;
+          
+          // Assumir que o agendamento existente tem a mesma duração do serviço
+          // Em um sistema real, você pegaria isso do serviço do agendamento
+          const appointmentEndMinutes = appointmentStartMinutes + serviceDuration;
+          
+          // Verificar sobreposição: novo agendamento não pode começar antes do fim do existente
+          // e não pode terminar depois do início do existente
+          return !(serviceEndTimeInMinutes <= appointmentStartMinutes || 
+                   currentTimeInMinutes >= appointmentEndMinutes);
+        });
 
         if (!isSlotBooked) {
           slots.push(timeSlot);
         } else {
-          console.log(`Horário ${timeSlot} já está ocupado`);
+          console.log(`Horário ${timeSlot} já está ocupado ou em conflito`);
         }
 
-        currentMinute += serviceDuration;
+        // Move to next slot (30-minute intervals for better granularity)
+        currentMinute += 30;
         while (currentMinute >= 60) {
           currentMinute -= 60;
           currentHour += 1;
@@ -118,6 +140,7 @@ export const useTimeSlots = ({
       
       const formattedDate = format(date, "yyyy-MM-dd");
       
+      // Filter slots that conflict with blocks
       const filteredSlots = slots.filter(time => {
         const currentDateTime = new Date(`${formattedDate}T${time}`);
 
@@ -146,7 +169,11 @@ export const useTimeSlots = ({
         });
       });
 
-      console.log(`Horários disponíveis: ${filteredSlots.join(', ')}`);
+      console.log(`Horários disponíveis após filtros: ${filteredSlots.join(', ')}`);
+      const lastPossibleTime = Math.floor((endTimeInMinutes - serviceDuration) / 60).toString().padStart(2, '0') + ':' + 
+                              ((endTimeInMinutes - serviceDuration) % 60).toString().padStart(2, '0');
+      console.log(`Último horário possível para serviço de ${serviceDuration}min: ${lastPossibleTime}`);
+      
       return filteredSlots;
     };
 
