@@ -1,13 +1,11 @@
 
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, User, Clock, Scissors } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Clock, User, Scissors, Phone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AppointmentWithDetails } from "@/types/appointment.types";
-import { formatCurrency } from "@/lib/currencyUtils";
-import { isInPast } from "@/lib/dateUtils";
+import { formatCurrency } from "@/lib/supabase";
 
 interface AdminAppointmentCardProps {
   appointment: AppointmentWithDetails;
@@ -15,96 +13,102 @@ interface AdminAppointmentCardProps {
 }
 
 export function AdminAppointmentCard({ appointment, onClick }: AdminAppointmentCardProps) {
-  const statusColors = {
-    agendado: "bg-blue-100 text-blue-800 hover:bg-blue-200",
-    concluido: "bg-green-100 text-green-800 hover:bg-green-200",
-    cancelado: "bg-red-100 text-red-800 hover:bg-red-200",
-  };
-  
-  const statusLabels = {
-    agendado: "Agendado",
-    concluido: "Concluído",
-    cancelado: "Cancelado",
+  const getStatusBadge = () => {
+    switch (appointment.status) {
+      case "agendado":
+        return (
+          <Badge 
+            variant="outline" 
+            className="bg-blue-100 text-blue-800 border-blue-200 transition-all duration-200 hover:bg-blue-150"
+          >
+            Agendado
+          </Badge>
+        );
+      case "concluido":
+        return (
+          <Badge 
+            variant="outline" 
+            className="bg-green-100 text-green-800 border-green-200 transition-all duration-200 hover:bg-green-150"
+          >
+            Concluído
+          </Badge>
+        );
+      case "cancelado":
+        return (
+          <Badge 
+            variant="outline" 
+            className="bg-red-100 text-red-800 border-red-200 transition-all duration-200 hover:bg-red-150"
+          >
+            Cancelado
+          </Badge>
+        );
+      default:
+        return (
+          <Badge 
+            variant="outline" 
+            className="bg-gray-100 text-gray-800 border-gray-200 transition-all duration-200 hover:bg-gray-150"
+          >
+            {appointment.status}
+          </Badge>
+        );
+    }
   };
 
-  const statusColor = statusColors[appointment.status as keyof typeof statusColors] || statusColors.agendado;
-  const statusLabel = statusLabels[appointment.status as keyof typeof statusLabels] || "Agendado";
-  
-  // Check if appointment is in the past and still marked as "agendado"
-  const isPastAndPending = appointment.status === "agendado" && 
-    isInPast(appointment.data, appointment.hora);
-    
-  // Handle card click with immediate loading state update
-  const handleCardClick = () => {
-    console.log("Clicando em agendamento:", appointment.id, isPastAndPending ? "(agendamento passado)" : "");
-    onClick();
-  };
+  const formattedDate = format(parseISO(appointment.data), "dd/MM/yyyy");
 
   return (
     <Card 
-      className="overflow-hidden hover:shadow transition-shadow duration-200 cursor-pointer" 
-      onClick={handleCardClick}
+      className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] animate-fade-in group"
+      onClick={onClick}
     >
-      <CardContent className="p-0">
-        <div className="flex flex-col md:flex-row">
-          {/* Time section */}
-          <div className="bg-muted p-4 flex items-center justify-center md:w-24">
-            <div className="text-center">
-              <Clock className="h-5 w-5 mx-auto text-muted-foreground" />
-              <span className="block mt-1 text-xl font-semibold">{appointment.hora}</span>
+      <CardContent className="p-4">
+        <div className="flex flex-col space-y-3">
+          {/* Header with client name and status */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <User className="h-4 w-4 text-muted-foreground transition-colors duration-200 group-hover:text-primary" />
+              <h3 className="font-medium transition-colors duration-200 group-hover:text-primary">
+                {appointment.cliente.nome}
+              </h3>
+            </div>
+            {getStatusBadge()}
+          </div>
+
+          {/* Service and professional info */}
+          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+            <div className="flex items-center space-x-1 transition-colors duration-200 group-hover:text-foreground">
+              <Scissors className="h-3.5 w-3.5" />
+              <span>{appointment.servico.nome}</span>
+            </div>
+            <div className="flex items-center space-x-1 transition-colors duration-200 group-hover:text-foreground">
+              <User className="h-3.5 w-3.5" />
+              <span>{appointment.profissional.nome}</span>
             </div>
           </div>
-          
-          {/* Info section */}
-          <div className="p-4 flex-1">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{appointment.cliente.nome}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Scissors className="h-4 w-4 text-muted-foreground" />
-                  <span>{appointment.servico.nome}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>
-                    {format(parseISO(appointment.data), "dd/MM/yyyy")} - {appointment.profissional.nome}
-                  </span>
-                </div>
-                
-                {isPastAndPending && (
-                  <div className="text-amber-600 text-sm font-medium animate-pulse">
-                    ⚠️ Agendamento no passado - necessita atualização
-                  </div>
-                )}
+
+          {/* Date, time and contact */}
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-1 text-muted-foreground transition-colors duration-200 group-hover:text-foreground">
+                <Clock className="h-3.5 w-3.5" />
+                <span>{formattedDate} às {appointment.hora}</span>
               </div>
-              
-              <div className="flex flex-col md:items-end gap-2 mt-2 md:mt-0">
-                <Badge variant="secondary" className={statusColor}>
-                  {statusLabel}
-                </Badge>
-                
-                <div className="text-primary font-medium">
-                  {formatCurrency(appointment.servico.valor)}
-                </div>
-                
-                <Button 
-                  size="sm" 
-                  className={`md:self-stretch ${isPastAndPending ? 'bg-amber-500 hover:bg-amber-600' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCardClick();
-                  }}
-                >
-                  {isPastAndPending ? 'Atualizar Agora' : 'Gerenciar'}
-                </Button>
+              <div className="flex items-center space-x-1 text-muted-foreground transition-colors duration-200 group-hover:text-foreground">
+                <Phone className="h-3.5 w-3.5" />
+                <span>{appointment.cliente.telefone}</span>
               </div>
             </div>
+            <div className="font-medium text-primary transition-all duration-200 group-hover:scale-105">
+              {formatCurrency(appointment.servico.valor)}
+            </div>
           </div>
+
+          {/* Cancellation reason if applicable */}
+          {appointment.status === "cancelado" && appointment.motivo_cancelamento && (
+            <div className="text-xs text-red-600 bg-red-50 p-2 rounded animate-fade-in">
+              <strong>Motivo:</strong> {appointment.motivo_cancelamento}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

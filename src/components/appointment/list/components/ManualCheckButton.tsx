@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw } from "lucide-react";
+import { RefreshCw, CheckCircle } from "lucide-react";
 
 interface ManualCheckButtonProps {
   onClick: () => void;
@@ -9,21 +9,22 @@ interface ManualCheckButtonProps {
 
 export function ManualCheckButton({ onClick, isRunning }: ManualCheckButtonProps) {
   return (
-    <Button 
-      variant="outline" 
-      size="sm"
+    <Button
       onClick={onClick}
       disabled={isRunning}
+      variant="outline"
+      size="sm"
+      className="transition-all duration-300 hover:scale-105 hover:shadow-md"
     >
       {isRunning ? (
         <>
-          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
           Verificando...
         </>
       ) : (
         <>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Verificar Agendamentos Antigos
+          <CheckCircle className="h-4 w-4 mr-2 transition-transform duration-200 hover:scale-110" />
+          Verificar Agendamentos
         </>
       )}
     </Button>

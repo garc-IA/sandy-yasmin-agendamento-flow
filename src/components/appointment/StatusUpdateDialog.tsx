@@ -53,9 +53,9 @@ export function StatusUpdateDialog({
   };
 
   const getButtonColor = () => {
-    if (isCompleting) return "bg-green-600 hover:bg-green-700";
-    if (isCanceling) return "bg-amber-600 hover:bg-amber-700";
-    if (isDeleting) return "bg-red-600 hover:bg-red-700";
+    if (isCompleting) return "bg-green-600 hover:bg-green-700 transition-all duration-200 hover:scale-105";
+    if (isCanceling) return "bg-amber-600 hover:bg-amber-700 transition-all duration-200 hover:scale-105";
+    if (isDeleting) return "bg-red-600 hover:bg-red-700 transition-all duration-200 hover:scale-105";
     return "";
   };
 
@@ -75,27 +75,32 @@ export function StatusUpdateDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="animate-scale-in">
         <AlertDialogHeader>
-          <AlertDialogTitle>{getTitle()}</AlertDialogTitle>
-          <AlertDialogDescription>{getDescription()}</AlertDialogDescription>
+          <AlertDialogTitle className="transition-colors duration-200">{getTitle()}</AlertDialogTitle>
+          <AlertDialogDescription className="transition-colors duration-200">{getDescription()}</AlertDialogDescription>
         </AlertDialogHeader>
         
         {isCanceling && (
-          <div className="py-2">
-            <Label htmlFor="cancelReason" className="mb-2 block">Motivo do cancelamento (opcional):</Label>
+          <div className="py-2 animate-fade-in">
+            <Label htmlFor="cancelReason" className="mb-2 block transition-colors duration-200">Motivo do cancelamento (opcional):</Label>
             <Textarea
               id="cancelReason"
               placeholder="Informe o motivo do cancelamento"
               value={reason}
               onChange={(e) => onReasonChange(e.target.value)}
-              className="w-full"
+              className="w-full transition-all duration-200 focus:scale-[1.01]"
             />
           </div>
         )}
         
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>Voltar</AlertDialogCancel>
+          <AlertDialogCancel 
+            disabled={isLoading}
+            className="transition-all duration-200 hover:scale-105"
+          >
+            Voltar
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isLoading}

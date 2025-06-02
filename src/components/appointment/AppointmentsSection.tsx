@@ -28,18 +28,26 @@ function AppointmentsSectionComponent({
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className={`text-lg font-medium ${titleClassName}`}>{title}</h3>
+    <div className="space-y-4 animate-fade-in">
+      <h3 className={`text-lg font-medium transition-all duration-300 hover:text-primary ${titleClassName}`}>{title}</h3>
       <div className="space-y-3">
-        {appointments.map((appointment) => (
-          <AppointmentCard
+        {appointments.map((appointment, index) => (
+          <div 
             key={appointment.id}
-            appointment={appointment}
-            onShowDetails={onShowDetails}
-            onActionClick={onActionClick}
-            isLoading={isLoading}
-            hideActions={hideActions}
-          />
+            style={{ 
+              animationDelay: `${index * 50}ms`,
+              animationFillMode: 'both'
+            }}
+            className="animate-fade-in"
+          >
+            <AppointmentCard
+              appointment={appointment}
+              onShowDetails={onShowDetails}
+              onActionClick={onActionClick}
+              isLoading={isLoading}
+              hideActions={hideActions}
+            />
+          </div>
         ))}
       </div>
     </div>

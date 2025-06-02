@@ -104,6 +104,16 @@
   table {
     @apply w-full table-auto;
   }
+
+  /* Smooth transitions for all interactive elements */
+  button, a, input, textarea, select {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  /* Improve focus states */
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+    @apply ring-2 ring-primary ring-offset-2 outline-none;
+  }
 }
 
 @layer components {
@@ -112,23 +122,23 @@
   }
   
   .card-salon {
-    @apply bg-white rounded-lg shadow-md p-4 sm:p-6 transition-all hover:shadow-lg;
+    @apply bg-white rounded-lg shadow-md p-4 sm:p-6 transition-all duration-300 hover:shadow-lg hover:scale-[1.01];
   }
   
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary/90 transition-colors;
+    @apply bg-primary text-white hover:bg-primary/90 transition-all duration-200 hover:scale-105;
   }
   
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-all duration-200 hover:scale-105;
   }
 
   .btn-accent {
-    @apply bg-accent text-white hover:bg-accent/90 transition-colors;
+    @apply bg-accent text-white hover:bg-accent/90 transition-all duration-200 hover:scale-105;
   }
   
   .input-salon {
-    @apply border border-border rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none;
+    @apply border border-border rounded-md p-2 focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200 focus:scale-[1.01];
   }
   
   /* Responsive utilities */
@@ -142,6 +152,53 @@
   
   .desktop-only {
     @apply hidden md:block;
+  }
+
+  /* Enhanced hover effects */
+  .hover-lift {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+
+  .hover-glow {
+    @apply transition-all duration-300 hover:shadow-[0_0_20px_rgba(208,166,56,0.3)];
+  }
+
+  /* Loading states */
+  .loading-shimmer {
+    @apply bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:400%_100%] animate-[shimmer_1.5s_ease-in-out_infinite];
+  }
+
+  /* Staggered animations */
+  .stagger-children > * {
+    animation-delay: calc(var(--stagger-delay, 100ms) * var(--index, 0));
+  }
+}
+
+/* Enhanced animations */
+@keyframes shimmer {
+  0% {
+    background-position: -400% 0%;
+  }
+  100% {
+    background-position: 400% 0%;
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(208, 166, 56, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(208, 166, 56, 0.8);
   }
 }
 
