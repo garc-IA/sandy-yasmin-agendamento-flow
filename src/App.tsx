@@ -16,7 +16,9 @@ import Professionals from "./pages/admin/Professionals";
 import Services from "./pages/admin/Services";
 import Clients from "./pages/admin/Clients";
 import Profile from "./pages/admin/Profile";
+import Tools from "./pages/admin/Tools";
 import { AuthProvider } from "./context/auth-context";
+import { ThemeProvider } from "./context/theme-context";
 import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
 import { initializeDefaultData } from "@/lib/initData";
@@ -66,36 +68,39 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <BrowserRouter>
-          <AuthProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              <Route element={<PublicLayout />}>
-                <Route path="/" element={<Navigate to="/agendar" replace />} />
-                <Route path="/agendar" element={<Appointment />} />
-                <Route path="/cliente" element={<ClientArea />} />
-              </Route>
+          <ThemeProvider>
+            <AuthProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<Navigate to="/agendar" replace />} />
+                  <Route path="/agendar" element={<Appointment />} />
+                  <Route path="/cliente" element={<ClientArea />} />
+                </Route>
 
-              {/* Authentication routes - not protected */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin/register" element={<Register />} />
-              <Route path="/auth/login" element={<Login />} />
-              <Route path="/auth/register" element={<Register />} />
+                {/* Authentication routes - not protected */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/register" element={<Register />} />
+                <Route path="/auth/login" element={<Login />} />
+                <Route path="/auth/register" element={<Register />} />
 
-              {/* Protected admin routes */}
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<Navigate to="/admin/agendamentos" replace />} />
-                <Route path="agendamentos" element={<AppointmentList />} />
-                <Route path="clientes" element={<Clients />} />
-                <Route path="profissionais" element={<Professionals />} />
-                <Route path="servicos" element={<Services />} />
-                <Route path="perfil" element={<Profile />} />
-              </Route>
+                {/* Protected admin routes */}
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<Navigate to="/admin/agendamentos" replace />} />
+                  <Route path="agendamentos" element={<AppointmentList />} />
+                  <Route path="clientes" element={<Clients />} />
+                  <Route path="profissionais" element={<Professionals />} />
+                  <Route path="servicos" element={<Services />} />
+                  <Route path="perfil" element={<Profile />} />
+                  <Route path="ferramentas" element={<Tools />} />
+                </Route>
 
-              {/* Fallback route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
+                {/* Fallback route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          </ThemeProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
