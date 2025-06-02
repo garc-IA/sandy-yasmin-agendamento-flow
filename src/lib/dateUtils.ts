@@ -1,28 +1,31 @@
+
 import { format, isAfter, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 /**
- * Verifica se uma data e hora já passaram com referência a agora
+ * Verifica se uma data e hora já passaram com referência ao horário do Brasil (UTC-3)
+ * Esta função agora usa a mesma lógica da função SQL corrigida
  * @param dateStr Data no formato YYYY-MM-DD
  * @param timeStr Hora no formato HH:MM
  * @returns true se a data/hora já passou, false caso contrário
  */
 export function isInPast(dateStr: string, timeStr: string): boolean {
   try {
-    // Obter a data atual
-    const now = new Date();
+    // Obter a data/hora atual no timezone do Brasil
+    const nowBrazil = new Date().toLocaleString("en-US", {timeZone: "America/Sao_Paulo"});
+    const now = new Date(nowBrazil);
     
-    // Criar uma data com a data e hora do agendamento
+    // Criar uma data com a data e hora do agendamento no timezone do Brasil
     const [year, month, day] = dateStr.split('-').map(Number);
     const [hours, minutes] = timeStr.split(':').map(Number);
     
-    // Criar a data do agendamento no fuso horário local do Brasil (UTC-3)
+    // Criar a data do agendamento (assumindo que já está no horário local do Brasil)
     const appointmentDate = new Date(year, month - 1, day, hours, minutes);
     
-    console.log(`Verificando se data está no passado:
-    - Data atual: ${now.toISOString()}
+    console.log(`✅ Verificação de data unificada:
+    - Data atual (Brasil): ${now.toISOString()}
     - Data do agendamento: ${appointmentDate.toISOString()}
-    - Resultado: ${now > appointmentDate ? 'SIM' : 'NÃO'}`);
+    - Está no passado: ${now > appointmentDate ? 'SIM' : 'NÃO'}`);
     
     // Comparar as datas diretamente
     return now > appointmentDate;

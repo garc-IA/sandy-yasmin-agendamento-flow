@@ -15,12 +15,12 @@ export function useAutoCompleteAppointments() {
     try {
       console.log("⏱️ Executando auto_complete_past_appointments via RPC...");
       
-      // Importante: Usar o RPC direto do Supabase é mais eficiente
+      // Usar o RPC corrigido que agora funciona com timezone do Brasil
       const { data, error } = await supabase.rpc('auto_complete_past_appointments');
       
       if (error) {
-        console.error('Erro ao executar auto_complete_past_appointments:', error);
-        return { success: false, updated: 0 };
+        console.error('❌ Erro ao executar auto_complete_past_appointments:', error);
+        return { success: false, updated: 0, error: error.message };
       }
       
       // Filtrar os resultados para incluir apenas atualizações
@@ -31,21 +31,21 @@ export function useAutoCompleteAppointments() {
       return { success: true, updated: totalUpdated, details: updated };
       
     } catch (err) {
-      console.error('Erro inesperado ao executar auto_complete_past_appointments via RPC:', err);
-      return { success: false, updated: 0 };
+      console.error('❌ Erro inesperado ao executar auto_complete_past_appointments via RPC:', err);
+      return { success: false, updated: 0, error: String(err) };
     }
   };
   
-  // Função para executar o Edge Function
+  // Função para executar o Edge Function como fallback
   const runEdgeFunctionAutoComplete = async () => {
     try {
-      console.log("⏱️ Executando auto-complete-appointments via Edge Function...");
+      console.log("⏱️ Executando auto-complete-appointments via Edge Function (fallback)...");
       
       const { data, error } = await supabase.functions.invoke('auto-complete-appointments');
       
       if (error) {
-        console.error('Erro ao executar auto-complete-appointments:', error);
-        return { success: false, updated: 0 };
+        console.error('❌ Erro ao executar auto-complete-appointments:', error);
+        return { success: false, updated: 0, error: error.message };
       }
       
       console.log("✅ Edge Function auto-complete resultado:", data);
@@ -57,22 +57,22 @@ export function useAutoCompleteAppointments() {
       };
       
     } catch (err) {
-      console.error('Erro inesperado ao executar auto-complete via Edge Function:', err);
-      return { success: false, updated: 0 };
+      console.error('❌ Erro inesperado ao executar auto-complete via Edge Function:', err);
+      return { success: false, updated: 0, error: String(err) };
     }
   };
   
   const runAutoComplete = async () => {
-    if (isRunning) return;
+    if (isRunning) return { success: false, updated: 0 };
     
     setIsRunning(true);
     try {
-      console.log("⏱️ Iniciando auto-complete de agendamentos...");
+      console.log("🔧 Iniciando auto-complete com função SQL corrigida...");
       
-      // Tentar primeiro via RPC (mais eficiente)
+      // Tentar primeiro via RPC (que agora está corrigido)
       let result = await runRpcAutoComplete();
       
-      // Se falhar ou não tiver atualizações, tentar via Edge Function como fallback
+      // Se falhar, tentar via Edge Function como fallback
       if (!result.success) {
         console.log("⚠️ RPC falhou, tentando via Edge Function...");
         result = await runEdgeFunctionAutoComplete();
@@ -87,19 +87,28 @@ export function useAutoCompleteAppointments() {
         // Forçar invalidação completa do cache de agendamentos
         await forceInvalidateCache();
         
-        // Mostrar notificação apenas se tiver atualizado algum
+        // Mostrar notificação de sucesso
         toast({
-          title: "Agendamentos atualizados",
+          title: "Agendamentos atualizados!",
           description: `${result.updated} agendamentos antigos foram automaticamente concluídos.`,
           duration: 5000
         });
       } else {
-        console.log("✅ Nenhum agendamento antigo para ser concluído.");
+        console.log("✅ Nenhum agendamento antigo encontrado para ser concluído.");
       }
       
       return { success: true, updated: result.updated };
     } catch (err) {
-      console.error('Erro inesperado ao executar auto-complete:', err);
+      console.error('❌ Erro inesperado ao executar auto-complete:', err);
+      
+      // Mostrar toast de erro apenas se algo realmente falhou
+      toast({
+        title: "Erro na verificação",
+        description: "Erro ao verificar agendamentos antigos. Tente novamente.",
+        variant: "destructive",
+        duration: 3000
+      });
+      
       return { success: false, updated: 0 };
     } finally {
       setIsRunning(false);
@@ -142,15 +151,20 @@ export function useAutoCompleteAppointments() {
     }
   };
 
-  // Executar ao montar o componente e periodicamente a cada 3 minutos
+  // Executar ao montar o componente e periodicamente a cada 5 minutos
   useEffect(() => {
     // Executar imediatamente quando o componente montar
-    runAutoComplete();
+    const timer = setTimeout(() => {
+      runAutoComplete();
+    }, 1000); // Pequeno delay para garantir que o componente está totalmente montado
     
-    // E então a cada 3 minutos
-    const interval = setInterval(runAutoComplete, 3 * 60 * 1000);
+    // E então a cada 5 minutos (aumentando o intervalo para não sobrecarregar)
+    const interval = setInterval(runAutoComplete, 5 * 60 * 1000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, []);
   
   return { 
