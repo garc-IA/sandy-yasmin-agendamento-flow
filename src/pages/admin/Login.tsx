@@ -28,7 +28,7 @@ const AdminLogin = () => {
         console.error('Erro de login:', error);
         toast({
           title: "Erro de autenticação",
-          description: "Email ou senha inválidos. Use: admin@studio.com / admin123",
+          description: "Email ou senha inválidos.",
           variant: "destructive"
         });
       } else {
@@ -69,7 +69,7 @@ const AdminLogin = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@studio.com"
+                placeholder="Digite seu email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -82,16 +82,11 @@ const AdminLogin = () => {
               <Input
                 id="password"
                 type="password"
-                placeholder="admin123"
+                placeholder="Digite sua senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-            </div>
-            <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded">
-              <strong>Credenciais de teste:</strong><br />
-              Email: admin@studio.com<br />
-              Senha: admin123
             </div>
           </CardContent>
           <CardFooter>
