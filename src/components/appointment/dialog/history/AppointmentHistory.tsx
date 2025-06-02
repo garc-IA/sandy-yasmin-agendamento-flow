@@ -8,10 +8,9 @@ interface HistoryEntry {
   id: string;
   created_at: string;
   agendamento_id: string;
-  status_anterior: string;
-  status_novo: string;
-  motivo?: string;
-  usuario?: string;
+  tipo: string;
+  descricao: string;
+  novo_valor?: string;
 }
 
 interface AppointmentHistoryProps {
@@ -26,20 +25,24 @@ export function AppointmentHistory({ appointmentId }: AppointmentHistoryProps) {
     async function fetchHistory() {
       setIsLoading(true);
       try {
+        console.log("🔍 Buscando histórico para agendamento:", appointmentId);
+        
         const { data, error } = await supabase
-          .from("historico_agendamentos")
+          .from("agendamento_historico")
           .select("*")
           .eq("agendamento_id", appointmentId)
           .order("created_at", { ascending: false });
 
         if (error) {
-          console.error("Erro ao buscar histórico:", error);
+          console.error("❌ Erro ao buscar histórico:", error);
           throw error;
         }
 
+        console.log("✅ Histórico carregado:", data?.length || 0, "entradas");
         setHistory(data || []);
       } catch (error) {
-        console.error("Erro ao buscar histórico:", error);
+        console.error("❌ Erro ao buscar histórico:", error);
+        setHistory([]);
       } finally {
         setIsLoading(false);
       }
@@ -59,8 +62,30 @@ export function AppointmentHistory({ appointmentId }: AppointmentHistoryProps) {
         return "Concluído";
       case "cancelado":
         return "Cancelado";
+      case "reagendado":
+        return "Reagendado";
+      case "auto_complete":
+        return "Auto-concluído";
       default:
         return status;
+    }
+  };
+
+  // Helper to get icon for status
+  const getStatusIcon = (tipo: string) => {
+    switch (tipo) {
+      case "agendado":
+        return "📅";
+      case "concluido":
+        return "✅";
+      case "cancelado":
+        return "❌";
+      case "reagendado":
+        return "🔄";
+      case "auto_complete":
+        return "🤖";
+      default:
+        return "📝";
     }
   };
 
@@ -76,6 +101,9 @@ export function AppointmentHistory({ appointmentId }: AppointmentHistoryProps) {
     return (
       <div className="py-8 text-center text-muted-foreground">
         <p>Nenhum histórico disponível para este agendamento.</p>
+        <p className="text-sm mt-2">
+          As alterações feitas neste agendamento aparecerão aqui.
+        </p>
       </div>
     );
   }
@@ -83,34 +111,37 @@ export function AppointmentHistory({ appointmentId }: AppointmentHistoryProps) {
   return (
     <div className="space-y-4">
       <div className="text-sm text-muted-foreground mb-2">
-        Mostrando histórico de alterações de status
+        Mostrando histórico de alterações ({history.length} entradas)
       </div>
-      <div className="space-y-4">
+      <div className="space-y-4 max-h-96 overflow-y-auto">
         {history.map((entry) => (
           <div
             key={entry.id}
-            className="border rounded-md p-4 space-y-2"
+            className="border rounded-md p-4 space-y-2 bg-white shadow-sm"
           >
-            <div className="flex justify-between items-center">
-              <div>
+            <div className="flex justify-between items-start">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{getStatusIcon(entry.tipo)}</span>
                 <span className="font-medium">
-                  {formatStatus(entry.status_anterior)} → {formatStatus(entry.status_novo)}
+                  {formatStatus(entry.tipo)}
                 </span>
               </div>
               <div className="text-sm text-muted-foreground">
                 {new Date(entry.created_at).toLocaleString("pt-BR")}
               </div>
             </div>
-            {entry.motivo && (
-              <div className="text-sm mt-1">
-                <span className="text-muted-foreground">Motivo: </span>
-                <span>{entry.motivo}</span>
+            
+            {entry.descricao && (
+              <div className="text-sm">
+                <span className="text-muted-foreground">Descrição: </span>
+                <span>{entry.descricao}</span>
               </div>
             )}
-            {entry.usuario && (
-              <div className="text-sm mt-1">
-                <span className="text-muted-foreground">Usuário: </span>
-                <span>{entry.usuario}</span>
+            
+            {entry.novo_valor && (
+              <div className="text-sm">
+                <span className="text-muted-foreground">Novo valor: </span>
+                <span className="font-medium">{entry.novo_valor}</span>
               </div>
             )}
           </div>

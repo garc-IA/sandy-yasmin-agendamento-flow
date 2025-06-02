@@ -1,5 +1,4 @@
 
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { AppointmentStatus } from "@/types/appointment.types";
@@ -95,7 +94,7 @@ export const useAppointmentActions = () => {
         throw new Error(errorMsg);
       }
 
-      // Create history entry
+      // Create history entry - agora deve funcionar com as políticas RLS corrigidas
       let historyDescription = `Status alterado para ${status}`;
       if (reason && status === 'cancelado') {
         historyDescription += ` - Motivo: ${reason}`;
@@ -110,6 +109,9 @@ export const useAppointmentActions = () => {
 
       if (!historySuccess) {
         console.warn("⚠️ Histórico não registrado:", historyError);
+        // Não falhar a operação por conta do histórico
+      } else {
+        console.log("✅ Histórico registrado com sucesso");
       }
 
       // Force refresh of all appointment data
@@ -233,7 +235,7 @@ export const useAppointmentActions = () => {
     try {
       logAppointmentAction('Excluindo agendamento', appointmentId);
       
-      // Delete appointment with RPC function
+      // Use the database function to delete appointment and history
       const { success, error } = await deleteAppointmentWithHistory(appointmentId);
 
       if (!success) {
@@ -260,12 +262,11 @@ export const useAppointmentActions = () => {
   };
 
   return {
-    isLoading,
     updateStatus,
     completeAppointment,
     cancelAppointment,
-    rescheduleAppointment: reschedule,
-    deleteAppointment
+    reschedule,
+    deleteAppointment,
+    isLoading,
   };
 };
-

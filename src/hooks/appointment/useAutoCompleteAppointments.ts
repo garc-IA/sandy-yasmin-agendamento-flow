@@ -10,12 +10,11 @@ export function useAutoCompleteAppointments() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Função para executar a função RPC do Supabase
+  // Função para executar a função RPC do Supabase (agora corrigida)
   const runRpcAutoComplete = async () => {
     try {
       console.log("⏱️ Executando auto_complete_past_appointments via RPC...");
       
-      // Usar o RPC corrigido que agora funciona com timezone do Brasil
       const { data, error } = await supabase.rpc('auto_complete_past_appointments');
       
       if (error) {
@@ -67,9 +66,9 @@ export function useAutoCompleteAppointments() {
     
     setIsRunning(true);
     try {
-      console.log("🔧 Iniciando auto-complete com função SQL corrigida...");
+      console.log("🔧 Iniciando auto-complete com função SQL e RLS corrigidos...");
       
-      // Tentar primeiro via RPC (que agora está corrigido)
+      // Tentar primeiro via RPC (que agora está corrigido com RLS)
       let result = await runRpcAutoComplete();
       
       // Se falhar, tentar via Edge Function como fallback
@@ -101,7 +100,6 @@ export function useAutoCompleteAppointments() {
     } catch (err) {
       console.error('❌ Erro inesperado ao executar auto-complete:', err);
       
-      // Mostrar toast de erro apenas se algo realmente falhou
       toast({
         title: "Erro na verificação",
         description: "Erro ao verificar agendamentos antigos. Tente novamente.",
@@ -156,9 +154,9 @@ export function useAutoCompleteAppointments() {
     // Executar imediatamente quando o componente montar
     const timer = setTimeout(() => {
       runAutoComplete();
-    }, 1000); // Pequeno delay para garantir que o componente está totalmente montado
+    }, 1000);
     
-    // E então a cada 5 minutos (aumentando o intervalo para não sobrecarregar)
+    // E então a cada 5 minutos
     const interval = setInterval(runAutoComplete, 5 * 60 * 1000);
     
     return () => {
