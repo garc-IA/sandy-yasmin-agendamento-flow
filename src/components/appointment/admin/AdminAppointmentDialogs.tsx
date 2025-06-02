@@ -33,7 +33,7 @@ export function AdminAppointmentDialogs({
   onAppointmentUpdated,
 }: AdminAppointmentDialogsProps) {
   const [cancelReason, setCancelReason] = useState("");
-  const { isLoading, completeAppointment, cancelAppointment, rescheduleAppointment, deleteAppointment } = useAppointmentActions();
+  const { isLoading, completeAppointment, cancelAppointment, reschedule, deleteAppointment } = useAppointmentActions();
 
   const handleCompleteAppointment = async () => {
     if (!appointment) return;
@@ -75,7 +75,7 @@ export function AdminAppointmentDialogs({
   const handleRescheduleAppointment = async (date: string, time: string) => {
     if (!appointment) return;
     
-    const success = await rescheduleAppointment(appointment.id, date, time);
+    const success = await reschedule(appointment.id, date, time);
     
     if (success) {
       // Fechar diálogos e forçar atualização dos dados
