@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import LogoUploader from "@/components/admin/tools/LogoUploader";
 import BannerUploader from "@/components/admin/tools/BannerUploader";
 import ColorPicker from "@/components/admin/tools/ColorPicker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useStudioSettings } from "@/context/theme-context";
 
 interface StudioSettings {
   name: string;
@@ -28,12 +28,12 @@ const defaultSettings: StudioSettings = {
 };
 
 const Tools = () => {
-  const [settings, setSettings] = useLocalStorage<StudioSettings>("studioSettings", defaultSettings);
-  const [studioName, setStudioName] = useState(settings.name);
-  const [logoUrl, setLogoUrl] = useState(settings.logoUrl);
-  const [bannerUrl, setBannerUrl] = useState(settings.bannerUrl);
-  const [primaryColor, setPrimaryColor] = useState(settings.primaryColor);
-  const [secondaryColor, setSecondaryColor] = useState(settings.secondaryColor);
+  const { studioTheme, updateStudioTheme } = useStudioSettings();
+  const [studioName, setStudioName] = useState(studioTheme.name);
+  const [logoUrl, setLogoUrl] = useState(studioTheme.logoUrl);
+  const [bannerUrl, setBannerUrl] = useState(studioTheme.bannerUrl);
+  const [primaryColor, setPrimaryColor] = useState(studioTheme.primaryColor);
+  const [secondaryColor, setSecondaryColor] = useState(studioTheme.secondaryColor);
   
   // Apply settings to CSS variables
   useEffect(() => {
@@ -58,7 +58,7 @@ const Tools = () => {
       secondaryColor,
     };
     
-    setSettings(newSettings);
+    updateStudioTheme(newSettings);
     toast({
       title: "Configurações salvas",
       description: "As alterações foram aplicadas com sucesso."
@@ -115,7 +115,7 @@ const Tools = () => {
                   onBannerChange={setBannerUrl} 
                 />
                 <p className="text-xs text-muted-foreground">
-                  Recomendado: imagem no formato 1200x300 pixels.
+                  Recomendado: imagem no formato 1200x300 pixels. Este banner aparecerá no topo do painel administrativo.
                 </p>
               </div>
               
@@ -151,23 +151,37 @@ const Tools = () => {
               {/* Preview */}
               <div className="space-y-2">
                 <Label>Pré-visualização</Label>
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center gap-4">
-                    {logoUrl && (
+                <div className="border rounded-lg overflow-hidden">
+                  {/* Banner preview */}
+                  {bannerUrl && (
+                    <div className="h-24 overflow-hidden bg-gradient-to-r from-primary/10 to-secondary/10">
                       <img 
-                        src={logoUrl} 
-                        alt="Logo Preview" 
-                        className="w-12 h-12 object-contain"
+                        src={bannerUrl} 
+                        alt="Banner Preview" 
+                        className="w-full h-full object-cover"
                       />
-                    )}
-                    <h2 className="font-bold">{studioName}</h2>
-                  </div>
-                  <div className="mt-4 grid grid-cols-2 gap-2">
-                    <Button style={{backgroundColor: primaryColor}}>
-                      Botão Primário
-                    </Button>
-                    <div style={{backgroundColor: secondaryColor}} className="p-4 rounded-md text-center">
-                      Background Secundário
+                    </div>
+                  )}
+                  
+                  {/* Header preview */}
+                  <div className="p-4">
+                    <div className="flex items-center gap-4">
+                      {logoUrl && (
+                        <img 
+                          src={logoUrl} 
+                          alt="Logo Preview" 
+                          className="w-12 h-12 object-contain"
+                        />
+                      )}
+                      <h2 className="font-bold">{studioName}</h2>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <Button style={{backgroundColor: primaryColor}}>
+                        Botão Primário
+                      </Button>
+                      <div style={{backgroundColor: secondaryColor}} className="p-4 rounded-md text-center">
+                        Background Secundário
+                      </div>
                     </div>
                   </div>
                 </div>

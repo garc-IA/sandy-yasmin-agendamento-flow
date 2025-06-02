@@ -1,6 +1,6 @@
 
 import { Outlet, Navigate } from "react-router-dom";
-import AdminHeader from "../admin/AdminHeader";
+import AdminHeaderWithBanner from "./AdminHeaderWithBanner";
 import { useAuth } from "@/context/auth-context";
 import Breadcrumbs from "../admin/Breadcrumbs";
 import { Loader2, Menu } from "lucide-react";
@@ -47,20 +47,22 @@ const AdminLayout = () => {
   if (isMobileView) {
     return (
       <div className="flex flex-col h-screen overflow-hidden">
-        <header className="sticky top-0 z-40 h-16 border-b bg-background flex items-center px-4">
-          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="mr-4">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-[80%] max-w-[280px]">
-              <AdminSidebar onItemClick={() => setSidebarOpen(false)} />
-            </SheetContent>
-          </Sheet>
-          <AdminHeader onLogout={signOut} />
-        </header>
+        <div className="sticky top-0 z-40">
+          <div className="h-16 border-b bg-background flex items-center px-4">
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="mr-4">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-[80%] max-w-[280px]">
+                <AdminSidebar onItemClick={() => setSidebarOpen(false)} />
+              </SheetContent>
+            </Sheet>
+            <AdminHeaderWithBanner onLogout={signOut} />
+          </div>
+        </div>
         <main className="flex-1 overflow-y-auto bg-background p-3 md:p-6">
           <Breadcrumbs />
           <Outlet />
@@ -76,7 +78,7 @@ const AdminLayout = () => {
         <AdminSidebar />
       </div>
       <div className="flex flex-col flex-1 overflow-hidden">
-        <AdminHeader onLogout={signOut} />
+        <AdminHeaderWithBanner onLogout={signOut} />
         <main className="flex-1 overflow-y-auto bg-background p-4 md:p-6">
           <Breadcrumbs />
           <Outlet />
