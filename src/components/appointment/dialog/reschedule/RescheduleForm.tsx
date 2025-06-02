@@ -57,6 +57,13 @@ export function RescheduleForm({
     }
   };
 
+  // Function to disable past dates
+  const isDateDisabled = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  };
+
   return (
     <>
       <Alert className="bg-blue-50 border-blue-200 flex-none">
@@ -70,7 +77,7 @@ export function RescheduleForm({
           <DateSelector
             date={selectedDate}
             onDateChange={setSelectedDate}
-            disablePastDates={true}
+            disabledDates={isDateDisabled}
           />
           
           {selectedDate && (
