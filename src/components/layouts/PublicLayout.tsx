@@ -3,10 +3,12 @@ import { Outlet } from "react-router-dom";
 import { Footer } from "@/components/common/Footer";
 import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
+import { CustomBanner } from "./CustomBanner";
 
 const PublicLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
+      <CustomBanner />
       <header className="bg-white border-b py-4 shadow-sm">
         <div className="container mx-auto px-4 flex justify-between items-center">
           <Link to="/" className="text-xl font-bold text-primary font-playfair">
