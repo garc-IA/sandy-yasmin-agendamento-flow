@@ -17,6 +17,7 @@ import Services from "./pages/admin/Services";
 import Clients from "./pages/admin/Clients";
 import Profile from "./pages/admin/Profile";
 import Tools from "./pages/admin/Tools";
+import AdminTools from "./pages/admin/AdminTools";
 import { AuthProvider } from "./context/auth-context";
 import { ThemeProvider } from "./context/theme-context";
 import Register from "./pages/auth/Register";
@@ -94,6 +95,7 @@ const App = () => {
                   <Route path="servicos" element={<Services />} />
                   <Route path="perfil" element={<Profile />} />
                   <Route path="ferramentas" element={<Tools />} />
+                  <Route path="admin-tools" element={<AdminTools />} />
                 </Route>
 
                 {/* Fallback route */}
