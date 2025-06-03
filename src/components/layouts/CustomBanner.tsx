@@ -9,7 +9,7 @@ export function CustomBanner() {
   }
 
   return (
-    <div className="w-full h-32 md:h-40 lg:h-48 overflow-hidden bg-gradient-to-r from-primary/10 to-secondary/10 animate-fade-in">
+    <div className="w-full h-40 md:h-48 lg:h-56 bg-gradient-to-r from-primary/10 to-secondary/10 animate-fade-in">
       <img 
         src={studioTheme.bannerUrl} 
         alt="Banner do Studio" 
