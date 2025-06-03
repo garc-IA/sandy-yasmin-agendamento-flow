@@ -42,7 +42,6 @@ export function SystemSettings() {
 
   const handleSaveSettings = async () => {
     try {
-      // Aqui seria feita a chamada para salvar as configurações
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
