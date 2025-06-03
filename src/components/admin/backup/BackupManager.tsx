@@ -47,7 +47,6 @@ export function BackupManager() {
   const handleExportData = async () => {
     setIsExporting(true);
     try {
-      // Simulate backup process
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const backupData = {
@@ -97,12 +96,10 @@ export function BackupManager() {
       const text = await file.text();
       const data = JSON.parse(text);
       
-      // Validate backup structure
       if (!data.data || !data.timestamp) {
         throw new Error('Formato de backup inválido');
       }
       
-      // Simulate import process
       await new Promise(resolve => setTimeout(resolve, 3000));
       
       toast({
@@ -117,7 +114,6 @@ export function BackupManager() {
       });
     } finally {
       setIsImporting(false);
-      // Reset input
       event.target.value = '';
     }
   };
