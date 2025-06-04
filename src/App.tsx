@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -95,7 +94,6 @@ const App = () => {
                   <Route path="servicos" element={<Services />} />
                   <Route path="perfil" element={<Profile />} />
                   <Route path="ferramentas" element={<Tools />} />
-                  <Route path="admin-tools" element={<AdminTools />} />
                 </Route>
 
                 {/* Fallback route */}

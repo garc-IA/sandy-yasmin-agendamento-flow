@@ -4,8 +4,7 @@ import {
   Users, 
   Scissors, 
   User,
-  Settings,
-  BarChart3
+  Settings
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -48,11 +47,6 @@ const AdminSidebar = ({ onItemClick }: AdminSidebarProps) => {
       title: "Ferramentas",
       icon: <Settings size={20} />,
       path: "/admin/ferramentas",
-    },
-    {
-      title: "Ferramentas Admin",
-      icon: <BarChart3 size={20} />,
-      path: "/admin/admin-tools",
     },
   ];
 
