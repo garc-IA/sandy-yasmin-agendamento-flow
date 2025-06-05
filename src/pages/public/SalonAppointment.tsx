@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react";
 export default function SalonAppointment() {
   const { salonUrl } = useParams<{ salonUrl: string }>();
   const { isSystemActive, maintenanceMessage, isLoading } = useSystemAvailability();
+  const [currentStep, setCurrentStep] = useState(1);
 
   // Se ainda está carregando o status do sistema
   if (isLoading) {
@@ -35,7 +36,7 @@ export default function SalonAppointment() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <AppointmentSteps />
+            <AppointmentSteps currentStep={currentStep} />
           </CardContent>
         </Card>
       </div>

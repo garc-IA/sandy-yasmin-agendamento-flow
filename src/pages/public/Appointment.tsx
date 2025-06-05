@@ -25,6 +25,11 @@ interface Servico {
   valor: number;
   duracao_em_minutos: number;
   descricao?: string;
+  created_at: string;
+  ativo: boolean;
+  categoria_id: string | null;
+  imagem_url: string | null;
+  admin_id: string | null;
 }
 
 interface Professional {
@@ -46,6 +51,7 @@ export default function Appointment() {
   });
   const [appointmentId, setAppointmentId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   const { toast } = useToast();
 
   // Se ainda está carregando o status do sistema
@@ -122,7 +128,7 @@ export default function Appointment() {
       if (agendamentoError) throw agendamentoError;
 
       setAppointmentId(agendamentoData.id);
-      setCurrentStep(5);
+      setIsComplete(true);
       
       toast({
         title: "Sucesso!",
@@ -154,7 +160,18 @@ export default function Appointment() {
     setSelectedTime("");
     setCustomer({ nome: "", telefone: "", email: "" });
     setAppointmentId("");
+    setIsComplete(false);
   };
+
+  // Prepare appointment data for confirmation component
+  const appointmentData = selectedService && selectedDate ? {
+    service: selectedService,
+    professional_name: selectedProfessional?.nome || '',
+    date: selectedDate.toISOString().split('T')[0],
+    time: selectedTime,
+    client: customer,
+    professional_id: selectedProfessional?.id || ''
+  } : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-8 px-4">
@@ -162,7 +179,7 @@ export default function Appointment() {
         <Card className="shadow-xl border-0">
           <CardHeader className="text-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
             <CardTitle className="text-2xl font-bold">
-              {currentStep === 5 ? "Agendamento Confirmado!" : "Agendar Horário"}
+              {currentStep === 4 && isComplete ? "Agendamento Confirmado!" : "Agendar Horário"}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -185,28 +202,14 @@ export default function Appointment() {
               />
             )}
             
-            {currentStep === 4 && (
-              <AppointmentSummary
-                service={selectedService}
-                professional={selectedProfessional}
-                date={selectedDate}
-                time={selectedTime}
-                customer={customer}
-                onConfirm={handleConfirmAppointment}
-                onBack={handleBack}
-                isSubmitting={isSubmitting}
-              />
-            )}
-            
-            {currentStep === 5 && (
+            {currentStep === 4 && appointmentData && (
               <Confirmation
-                appointmentId={appointmentId}
-                service={selectedService}
-                professional={selectedProfessional}
-                date={selectedDate}
-                time={selectedTime}
-                customer={customer}
-                onNewAppointment={handleNewAppointment}
+                appointmentData={appointmentData}
+                isSubmitting={isSubmitting}
+                isComplete={isComplete}
+                setIsSubmitting={setIsSubmitting}
+                setIsComplete={setIsComplete}
+                prevStep={handleBack}
               />
             )}
           </CardContent>
