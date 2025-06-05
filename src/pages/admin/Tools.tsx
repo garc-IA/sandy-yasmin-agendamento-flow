@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStudioSettings } from "@/context/theme-context";
 import { PersonalizationSection } from "@/components/admin/tools/PersonalizationSection";
 import { DailyNotificationSettings } from "@/components/admin/daily-notifications/DailyNotificationSettings";
+import { BusinessHoursSettings } from "@/components/admin/daily-notifications/BusinessHoursSettings";
 
 const Tools = () => {
   const { studioTheme, updateStudioTheme } = useStudioSettings();
@@ -40,6 +41,7 @@ const Tools = () => {
         <TabsList className="mb-4">
           <TabsTrigger value="personalizacao">Personalização</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
+          <TabsTrigger value="horarios">Horários</TabsTrigger>
           <TabsTrigger value="configuracoes">Configurações Gerais</TabsTrigger>
         </TabsList>
         
@@ -62,6 +64,10 @@ const Tools = () => {
 
         <TabsContent value="notificacoes" className="space-y-4">
           <DailyNotificationSettings />
+        </TabsContent>
+
+        <TabsContent value="horarios" className="space-y-4">
+          <BusinessHoursSettings />
         </TabsContent>
         
         <TabsContent value="configuracoes">

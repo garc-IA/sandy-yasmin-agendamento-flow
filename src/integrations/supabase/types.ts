@@ -13,7 +13,10 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          dias_funcionamento: string[] | null
           email: string
+          horario_abertura: string | null
+          horario_fechamento: string | null
           id: string
           nome: string | null
           senha: string
@@ -23,7 +26,10 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          dias_funcionamento?: string[] | null
           email: string
+          horario_abertura?: string | null
+          horario_fechamento?: string | null
           id?: string
           nome?: string | null
           senha: string
@@ -33,7 +39,10 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          dias_funcionamento?: string[] | null
           email?: string
+          horario_abertura?: string | null
+          horario_fechamento?: string | null
           id?: string
           nome?: string | null
           senha?: string
