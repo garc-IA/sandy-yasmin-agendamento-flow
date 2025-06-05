@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { PersonalizationSection } from "@/components/admin/tools/Personalization
 import { DailyNotificationSettings } from "@/components/admin/daily-notifications/DailyNotificationSettings";
 import { BusinessHoursSettings } from "@/components/admin/daily-notifications/BusinessHoursSettings";
 import { ReminderSettings } from "@/components/admin/daily-notifications/ReminderSettings";
+import { SystemAvailabilitySettings } from "@/components/admin/tools/SystemAvailabilitySettings";
 
 const Tools = () => {
   const { studioTheme, updateStudioTheme } = useStudioSettings();
@@ -75,17 +77,8 @@ const Tools = () => {
           <BusinessHoursSettings />
         </TabsContent>
         
-        <TabsContent value="configuracoes">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configurações Gerais</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Configurações adicionais e opções do sistema estarão disponíveis em breve.
-              </p>
-            </CardContent>
-          </Card>
+        <TabsContent value="configuracoes" className="space-y-4">
+          <SystemAvailabilitySettings />
         </TabsContent>
       </Tabs>
     </div>
