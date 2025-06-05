@@ -10,10 +10,12 @@ export function useAutoCompleteAppointments() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Função para executar a função RPC do Supabase (agora corrigida)
+  // Função para executar a função RPC do Supabase (agora com logs detalhados)
   const runRpcAutoComplete = async () => {
     try {
       console.log("⏱️ Executando auto_complete_past_appointments via RPC...");
+      console.log("🕐 Horário atual do sistema:", new Date().toISOString());
+      console.log("🇧🇷 Horário atual do Brasil:", new Date().toLocaleString("pt-BR", {timeZone: "America/Sao_Paulo"}));
       
       const { data, error } = await supabase.rpc('auto_complete_past_appointments');
       
@@ -22,11 +24,31 @@ export function useAutoCompleteAppointments() {
         return { success: false, updated: 0, error: error.message };
       }
       
+      // Log detalhado de todos os resultados
+      console.log("📊 Resultados completos da função RPC:", data);
+      
       // Filtrar os resultados para incluir apenas atualizações
       const updated = data ? data.filter((item: any) => item.updated === true) : [];
+      const notUpdated = data ? data.filter((item: any) => item.updated === false) : [];
       const totalUpdated = updated.length;
       
-      console.log(`✅ RPC auto_complete_past_appointments: ${totalUpdated} agendamentos atualizados`, updated);
+      console.log(`✅ RPC auto_complete_past_appointments: ${totalUpdated} agendamentos atualizados`);
+      console.log("🔄 Agendamentos atualizados:", updated);
+      console.log("⏸️ Agendamentos não atualizados:", notUpdated);
+      
+      // Log específico para agendamentos de hoje às 14:00
+      const todayStr = new Date().toISOString().split('T')[0];
+      const appointments14h = data ? data.filter((item: any) => 
+        item.appointment_date === todayStr && item.appointment_time === '14:00'
+      ) : [];
+      
+      if (appointments14h.length > 0) {
+        console.log("🎯 Agendamentos encontrados para hoje às 14:00:", appointments14h);
+      } else {
+        console.log("🔍 Nenhum agendamento encontrado para hoje às 14:00");
+        console.log("📅 Procurando por data:", todayStr);
+      }
+      
       return { success: true, updated: totalUpdated, details: updated };
       
     } catch (err) {
@@ -62,11 +84,15 @@ export function useAutoCompleteAppointments() {
   };
   
   const runAutoComplete = async () => {
-    if (isRunning) return { success: false, updated: 0 };
+    if (isRunning) {
+      console.log("⚠️ Auto-complete já está executando, pulando execução");
+      return { success: false, updated: 0 };
+    }
     
     setIsRunning(true);
     try {
       console.log("🔧 Iniciando auto-complete...");
+      console.log("🕐 Timestamp de início:", new Date().toISOString());
       
       // Tentar primeiro via RPC
       let result = await runRpcAutoComplete();
@@ -94,6 +120,7 @@ export function useAutoCompleteAppointments() {
         });
       } else {
         console.log("✅ Nenhum agendamento antigo encontrado para ser concluído.");
+        console.log("📝 Verificando se há agendamentos das 14:00 que deveriam ter sido concluídos...");
       }
       
       return { success: true, updated: result.updated };
@@ -149,17 +176,30 @@ export function useAutoCompleteAppointments() {
     }
   };
 
-  // Executar ao montar o componente e periodicamente a cada 2 minutos (mais frequente)
+  // Função para verificação manual imediata
+  const runImmediateCheck = async () => {
+    console.log("🚀 Executando verificação manual imediata...");
+    return await runAutoComplete();
+  };
+
+  // Executar ao montar o componente e periodicamente a cada 1 minuto (ainda mais frequente para debug)
   useEffect(() => {
+    console.log("🎬 useAutoCompleteAppointments hook montado");
+    
     // Executar imediatamente quando o componente montar
     const timer = setTimeout(() => {
+      console.log("🏃‍♂️ Executando primeira verificação após mount...");
       runAutoComplete();
     }, 1000);
     
-    // E então a cada 2 minutos (ao invés de 5)
-    const interval = setInterval(runAutoComplete, 2 * 60 * 1000);
+    // E então a cada 1 minuto para debug mais rápido
+    const interval = setInterval(() => {
+      console.log("⏰ Executando verificação periódica...");
+      runAutoComplete();
+    }, 1 * 60 * 1000);
     
     return () => {
+      console.log("🧹 Limpando timers do useAutoCompleteAppointments");
       clearTimeout(timer);
       clearInterval(interval);
     };
@@ -167,6 +207,7 @@ export function useAutoCompleteAppointments() {
   
   return { 
     runAutoComplete, 
+    runImmediateCheck,
     isRunning, 
     lastRunTime,
     forceInvalidateCache

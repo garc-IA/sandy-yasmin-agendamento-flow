@@ -27,6 +27,18 @@ export function isInPast(dateStr: string, timeStr: string): boolean {
     - Data do agendamento: ${appointmentDate.toISOString()}
     - Está no passado: ${now > appointmentDate ? 'SIM' : 'NÃO'}`);
     
+    // Adicionar logs específicos para agendamentos das 14:00 de hoje
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (dateStr === todayStr && timeStr === '14:00') {
+      console.log(`🎯 VERIFICAÇÃO ESPECÍFICA 14:00 HOJE:
+      - Data do agendamento: ${dateStr} ${timeStr}
+      - Data/hora atual Brasil: ${now.toLocaleString('pt-BR')}
+      - Timestamp atual: ${now.getTime()}
+      - Timestamp agendamento: ${appointmentDate.getTime()}
+      - Diferença em minutos: ${(now.getTime() - appointmentDate.getTime()) / (1000 * 60)}
+      - Deveria ser concluído: ${now > appointmentDate ? 'SIM' : 'NÃO'}`);
+    }
+    
     // Comparar as datas diretamente
     return now > appointmentDate;
   } catch (e) {
