@@ -1,10 +1,6 @@
 
 import { supabase } from "@/lib/supabase";
-import { 
-  logDatabaseOperation,
-  logAppointmentError,
-  logAppointmentAction
-} from "@/utils/debugUtils";
+import { logger } from "@/utils/logger";
 import { DatabaseResult } from "../useAppointmentTypes";
 
 /**
@@ -31,7 +27,7 @@ export const useAppointmentHistory = () => {
       ...(observacao && { observacao }),
     };
 
-    logAppointmentAction("Inserindo histórico", appointmentId, historyEntry);
+    logger.appointment.action("Inserindo histórico", appointmentId, historyEntry);
 
     try {
       const { data, error } = await supabase
@@ -39,15 +35,15 @@ export const useAppointmentHistory = () => {
         .insert(historyEntry)
         .select();
       
-      logDatabaseOperation('INSERT', 'agendamento_historico', { data, error });
+      logger.database.operation('INSERT', 'agendamento_historico', { data, error });
       
       return { 
         data, 
-        error, 
+        error: error || null, 
         success: !error 
       };
     } catch (error) {
-      logAppointmentError('Erro ao criar histórico', appointmentId, error);
+      logger.appointment.error('Erro ao criar histórico', appointmentId, error);
       return { 
         data: null, 
         error: error instanceof Error ? error : new Error('Erro desconhecido'),
@@ -67,15 +63,15 @@ export const useAppointmentHistory = () => {
         .eq('agendamento_id', appointmentId)
         .order('created_at', { ascending: false });
       
-      logDatabaseOperation('SELECT', 'agendamento_historico', { data, error });
+      logger.database.operation('SELECT', 'agendamento_historico', { data, error });
       
       return {
         data,
-        error,
+        error: error || null,
         success: !error
       };
     } catch (error) {
-      logAppointmentError('Erro ao buscar histórico do agendamento', appointmentId, error);
+      logger.appointment.error('Erro ao buscar histórico do agendamento', appointmentId, error);
       return { 
         data: null, 
         error: error instanceof Error ? error : new Error('Erro desconhecido'),

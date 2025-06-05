@@ -1,10 +1,6 @@
 
 import { supabase } from "@/lib/supabase";
-import { 
-  logDatabaseOperation,
-  logAppointmentError,
-  logAppointmentAction
-} from "@/utils/debugUtils";
+import { logger } from "@/utils/logger";
 import { DatabaseResult } from "../useAppointmentTypes";
 
 /**
@@ -19,11 +15,11 @@ export const useAppointmentRescheduling = () => {
    */
   const rescheduleAppointment = async (
     appointmentId: string,
-    date: Date,
+    date: Date | string,
     time: string
   ): Promise<DatabaseResult> => {
     if (!appointmentId || appointmentId.trim() === '') {
-      logAppointmentError('ID de agendamento inválido para reagendamento', appointmentId || 'null');
+      logger.appointment.error('ID de agendamento inválido para reagendamento', appointmentId || 'null');
       return { 
         data: null, 
         error: new Error('ID de agendamento inválido'), 
@@ -40,7 +36,7 @@ export const useAppointmentRescheduling = () => {
       hora: time 
     };
 
-    logAppointmentAction('Executando reagendamento no banco', appointmentId, updateData);
+    logger.appointment.action('Executando reagendamento no banco', appointmentId, updateData);
 
     try {
       const { data, error } = await supabase
@@ -49,15 +45,15 @@ export const useAppointmentRescheduling = () => {
         .eq('id', appointmentId)
         .select();
       
-      logDatabaseOperation('UPDATE', 'agendamentos', { data, error });
+      logger.database.operation('UPDATE', 'agendamentos', { data, error });
       
       return { 
         data, 
-        error, 
+        error: error || null, 
         success: !error && data !== null 
       };
     } catch (error) {
-      logAppointmentError('Erro inesperado ao reagendar', appointmentId, error);
+      logger.appointment.error('Erro inesperado ao reagendar', appointmentId, error);
       return { 
         data: null, 
         error: error instanceof Error ? error : new Error('Erro desconhecido'),

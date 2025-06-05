@@ -1,9 +1,6 @@
 
 import { supabase } from "@/lib/supabase";
-import { 
-  logDatabaseOperation,
-  logAppointmentError
-} from "@/utils/debugUtils";
+import { logger } from "@/utils/logger";
 import { DatabaseResult } from "../useAppointmentTypes";
 
 /**
@@ -16,7 +13,7 @@ export const useAppointmentDeletion = () => {
   const deleteAppointmentWithHistory = async (appointmentId: string): Promise<DatabaseResult> => {
     try {
       // Log the deletion attempt
-      console.log(`🗑️ Attempting to delete appointment: ${appointmentId}`);
+      logger.info(`🗑️ Attempting to delete appointment: ${appointmentId}`);
       
       // Use the improved database function to delete the appointment and its history
       const { data, error } = await supabase
@@ -25,16 +22,16 @@ export const useAppointmentDeletion = () => {
         });
       
       if (error) {
-        console.error("❌ Error deleting appointment:", error);
+        logger.error("❌ Error deleting appointment:", error);
         return {
           data: null,
-          error,
+          error: error || null,
           success: false
         };
       }
       
-      logDatabaseOperation('RPC', 'delete_appointment_with_history', { success: true, appointmentId });
-      console.log(`✅ Successfully deleted appointment: ${appointmentId}`);
+      logger.database.operation('RPC', 'delete_appointment_with_history', { success: true, appointmentId });
+      logger.info(`✅ Successfully deleted appointment: ${appointmentId}`);
 
       return {
         data,
@@ -42,7 +39,7 @@ export const useAppointmentDeletion = () => {
         success: true
       };
     } catch (error) {
-      logAppointmentError('Erro ao excluir agendamento e histórico', appointmentId, error);
+      logger.appointment.error('Erro ao excluir agendamento e histórico', appointmentId, error);
       return { 
         data: null, 
         error: error instanceof Error ? error : new Error('Erro desconhecido'),

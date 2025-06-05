@@ -1,14 +1,15 @@
 
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/utils/logger";
-import { DatabaseResult } from "../useAppointmentTypes";
 
 /**
- * Hook for fetching appointment details from the database
+ * Core database utilities for appointment operations
+ * Contains shared functionality used across different database operation hooks
  */
-export const useAppointmentDetails = () => {
+export const useAppointmentCore = () => {
   /**
    * Obtém o ID do admin padrão para o Studio Sandy Yasmin
+   * Esta função é usada internamente para associar operações ao admin correto
    */
   const getAdminId = async (): Promise<string> => {
     try {
@@ -29,10 +30,18 @@ export const useAppointmentDetails = () => {
   };
 
   /**
-   * Fetches appointment details by ID
+   * Fetches an appointment by ID with all related data
    */
-  const getAppointmentById = async (appointmentId: string): Promise<DatabaseResult> => {
+  const getAppointmentById = async (appointmentId: string) => {
     try {
+      if (!appointmentId) {
+        return { 
+          data: null, 
+          error: new Error('ID de agendamento inválido'), 
+          success: false 
+        };
+      }
+
       const { data, error } = await supabase
         .from('agendamentos')
         .select(`
@@ -44,15 +53,13 @@ export const useAppointmentDetails = () => {
         .eq('id', appointmentId)
         .single();
       
-      logger.database.operation('SELECT', 'agendamentos', { data, error });
-      
-      return {
-        data,
-        error: error || null,
-        success: !error && data !== null
+      return { 
+        data, 
+        error: error || null, 
+        success: !error && data !== null 
       };
     } catch (error) {
-      logger.appointment.error('Erro ao buscar detalhes do agendamento', appointmentId, error);
+      logger.appointment.error('Erro ao buscar agendamento', appointmentId, error);
       return { 
         data: null, 
         error: error instanceof Error ? error : new Error('Erro desconhecido'),
@@ -61,5 +68,8 @@ export const useAppointmentDetails = () => {
     }
   };
 
-  return { getAdminId, getAppointmentById };
+  return {
+    getAdminId,
+    getAppointmentById
+  };
 };

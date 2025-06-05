@@ -1,11 +1,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { AppointmentStatus } from "@/types/appointment.types";
-import { 
-  logDatabaseOperation,
-  logAppointmentError,
-  logAppointmentAction
-} from "@/utils/debugUtils";
+import { logger } from "@/utils/logger";
 import { DatabaseResult } from "../useAppointmentTypes";
 
 /**
@@ -24,7 +20,7 @@ export const useAppointmentStatus = () => {
     reason?: string
   ): Promise<DatabaseResult> => {
     if (!appointmentId || appointmentId.trim() === '') {
-      logAppointmentError('ID de agendamento inválido para atualização de status', appointmentId || 'null');
+      logger.appointment.error('ID de agendamento inválido para atualização de status', appointmentId || 'null');
       return { 
         data: null, 
         error: new Error('ID de agendamento inválido'), 
@@ -36,10 +32,10 @@ export const useAppointmentStatus = () => {
     
     if (reason && status === 'cancelado') {
       updateData['motivo_cancelamento'] = reason;
-      logAppointmentAction(`Adicionando motivo de cancelamento`, appointmentId, { motivo: reason });
+      logger.appointment.action(`Adicionando motivo de cancelamento`, appointmentId, { motivo: reason });
     }
 
-    logAppointmentAction('Executando update no banco', appointmentId, { updateData });
+    logger.appointment.action('Executando update no banco', appointmentId, { updateData });
 
     try {
       const { data, error } = await supabase
@@ -48,15 +44,15 @@ export const useAppointmentStatus = () => {
         .eq('id', appointmentId)
         .select();
       
-      logDatabaseOperation('UPDATE', 'agendamentos', { data, error });
+      logger.database.operation('UPDATE', 'agendamentos', { data, error });
       
       return { 
         data, 
-        error, 
+        error: error || null, 
         success: !error && data !== null 
       };
     } catch (error) {
-      logAppointmentError('Erro inesperado ao atualizar status', appointmentId, error);
+      logger.appointment.error('Erro inesperado ao atualizar status', appointmentId, error);
       return { 
         data: null, 
         error: error instanceof Error ? error : new Error('Erro desconhecido'),
