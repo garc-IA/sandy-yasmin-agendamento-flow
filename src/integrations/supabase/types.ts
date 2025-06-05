@@ -95,6 +95,7 @@ export type Database = {
           end_time: string | null
           hora: string
           id: string
+          lembrete_enviado_em: string | null
           motivo_cancelamento: string | null
           profissional_id: string
           servico_id: string
@@ -110,6 +111,7 @@ export type Database = {
           end_time?: string | null
           hora: string
           id?: string
+          lembrete_enviado_em?: string | null
           motivo_cancelamento?: string | null
           profissional_id: string
           servico_id: string
@@ -125,6 +127,7 @@ export type Database = {
           end_time?: string | null
           hora?: string
           id?: string
+          lembrete_enviado_em?: string | null
           motivo_cancelamento?: string | null
           profissional_id?: string
           servico_id?: string

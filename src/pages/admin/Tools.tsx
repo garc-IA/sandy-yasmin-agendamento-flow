@@ -41,6 +41,7 @@ const Tools = () => {
         <TabsList className="mb-4">
           <TabsTrigger value="personalizacao">Personalização</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
+          <TabsTrigger value="lembretes">Lembretes</TabsTrigger>
           <TabsTrigger value="horarios">Horários</TabsTrigger>
           <TabsTrigger value="configuracoes">Configurações Gerais</TabsTrigger>
         </TabsList>
@@ -64,6 +65,10 @@ const Tools = () => {
 
         <TabsContent value="notificacoes" className="space-y-4">
           <DailyNotificationSettings />
+        </TabsContent>
+
+        <TabsContent value="lembretes" className="space-y-4">
+          <ReminderSettings />
         </TabsContent>
 
         <TabsContent value="horarios" className="space-y-4">
