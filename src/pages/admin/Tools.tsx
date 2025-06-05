@@ -11,11 +11,6 @@ import BannerUploader from "@/components/admin/tools/BannerUploader";
 import ColorPicker from "@/components/admin/tools/ColorPicker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStudioSettings } from "@/context/theme-context";
-import { ActivityLogsList } from "@/components/admin/logs/ActivityLogsList";
-import { BackupManager } from "@/components/admin/backup/BackupManager";
-import { AdvancedAnalytics } from "@/components/admin/analytics/AdvancedAnalytics";
-import { SystemSettings } from "@/components/admin/settings/SystemSettings";
-import { History, Database, BarChart3, Settings, Palette } from "lucide-react";
 
 interface StudioSettings {
   name: string;
@@ -76,27 +71,9 @@ const Tools = () => {
       <h1 className="text-2xl font-bold">Ferramentas</h1>
       
       <Tabs defaultValue="personalizacao">
-        <TabsList className="mb-4 grid grid-cols-5 w-full">
-          <TabsTrigger value="personalizacao" className="flex items-center gap-2">
-            <Palette className="h-4 w-4" />
-            Personalização
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analytics
-          </TabsTrigger>
-          <TabsTrigger value="logs" className="flex items-center gap-2">
-            <History className="h-4 w-4" />
-            Logs
-          </TabsTrigger>
-          <TabsTrigger value="backup" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            Backup
-          </TabsTrigger>
-          <TabsTrigger value="configuracoes" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Sistema
-          </TabsTrigger>
+        <TabsList className="mb-4">
+          <TabsTrigger value="personalizacao">Personalização</TabsTrigger>
+          <TabsTrigger value="configuracoes">Configurações Gerais</TabsTrigger>
         </TabsList>
         
         <TabsContent value="personalizacao" className="space-y-4">
@@ -219,21 +196,18 @@ const Tools = () => {
             </Button>
           </div>
         </TabsContent>
-
-        <TabsContent value="analytics">
-          <AdvancedAnalytics />
-        </TabsContent>
-
-        <TabsContent value="logs">
-          <ActivityLogsList />
-        </TabsContent>
-
-        <TabsContent value="backup">
-          <BackupManager />
-        </TabsContent>
         
         <TabsContent value="configuracoes">
-          <SystemSettings />
+          <Card>
+            <CardHeader>
+              <CardTitle>Configurações Gerais</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Configurações adicionais e opções do sistema estarão disponíveis em breve.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
