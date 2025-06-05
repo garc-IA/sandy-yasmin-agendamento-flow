@@ -1,13 +1,14 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { ServiceSelection } from "@/components/appointment/ServiceSelection";
-import { DateAndTimeSelector } from "@/components/appointment/DateAndTimeSelector";
-import { CustomerForm } from "@/components/appointment/CustomerForm";
-import { AppointmentSummary } from "@/components/appointment/AppointmentSummary";
-import { Confirmation } from "@/components/appointment/Confirmation";
+import ServiceSelection from "@/components/appointment/ServiceSelection";
+import DateAndTimeSelector from "@/components/appointment/DateAndTimeSelector";
+import CustomerForm from "@/components/appointment/CustomerForm";
+import AppointmentSummary from "@/components/appointment/AppointmentSummary";
+import Confirmation from "@/components/appointment/Confirmation";
 import { useSystemAvailability } from "@/hooks/useSystemAvailability";
 import { SystemMaintenanceMessage } from "@/components/appointment/SystemMaintenanceMessage";
 import { Loader2 } from "lucide-react";

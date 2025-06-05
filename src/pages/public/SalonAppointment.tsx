@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppointmentSteps } from "@/components/appointment/AppointmentSteps";
+import AppointmentSteps from "@/components/appointment/AppointmentSteps";
 import { useSystemAvailability } from "@/hooks/useSystemAvailability";
 import { SystemMaintenanceMessage } from "@/components/appointment/SystemMaintenanceMessage";
 import { Loader2 } from "lucide-react";
