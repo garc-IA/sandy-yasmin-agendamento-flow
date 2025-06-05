@@ -40,7 +40,7 @@ export function ManualCheckButton({
         size="sm" 
         onClick={onClick} 
         disabled={isRunning}
-        className="transition-all duration-200 hover:scale-105"
+        className="transition-all duration-200"
       >
         {isRunning ? (
           <>
@@ -50,7 +50,7 @@ export function ManualCheckButton({
         ) : (
           <>
             <RefreshCw className="h-4 w-4 mr-2" />
-            Verificar Agendamentos
+            Verificar
           </>
         )}
       </Button>
@@ -58,11 +58,11 @@ export function ManualCheckButton({
       {lastRunTime && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Clock className="h-3 w-3" />
-          <span>Última verificação: {formatLastRun(lastRunTime)}</span>
+          <span>{formatLastRun(lastRunTime)}</span>
           {lastUpdateCount > 0 && (
             <Badge variant="secondary" className="text-xs">
               <CheckCircle className="h-3 w-3 mr-1" />
-              {lastUpdateCount} atualizados
+              {lastUpdateCount}
             </Badge>
           )}
         </div>

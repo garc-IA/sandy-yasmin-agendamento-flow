@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CalendarView } from "@/components/appointment/admin/CalendarView";
 import { AppointmentAlerts } from "@/components/appointment/admin/AppointmentAlerts";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -12,32 +12,12 @@ import { Badge } from "@/components/ui/badge";
 const AppointmentsOverview = () => {
   const [view, setView] = useState<string>("calendar");
   
-  // Initialize auto-completion with enhanced monitoring
   const { 
-    runImmediateCheck, 
-    forceCompleteInvalidation,
+    runManualCheck, 
     lastRunTime, 
     lastUpdateCount,
     isRunning 
   } = useAutoCompleteAppointments();
-  
-  // Forçar a verificação de agendamentos antigos quando a página for carregada
-  useEffect(() => {
-    console.log("🔄 AppointmentsOverview montado - verificando agendamentos antigos com sync enhancado");
-    const timer = setTimeout(async () => {
-      await runImmediateCheck();
-      await forceCompleteInvalidation();
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Função para forçar a verificação manual com invalidação completa
-  const handleManualCheck = async () => {
-    console.log("🚀 Verificação manual solicitada da Overview");
-    await runImmediateCheck();
-    await forceCompleteInvalidation();
-  };
 
   const formatLastRun = (date: Date | null) => {
     if (!date) return "Nunca executado";
@@ -83,9 +63,9 @@ const AppointmentsOverview = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={handleManualCheck} 
+          onClick={runManualCheck} 
           disabled={isRunning}
-          className="transition-all duration-200 hover:scale-105"
+          className="transition-all duration-200"
         >
           {isRunning ? (
             <>
@@ -95,7 +75,7 @@ const AppointmentsOverview = () => {
           ) : (
             <>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Verificar & Atualizar
+              Atualizar
             </>
           )}
         </Button>
