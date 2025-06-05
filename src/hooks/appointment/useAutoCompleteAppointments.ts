@@ -7,10 +7,11 @@ import { useQueryClient } from '@tanstack/react-query';
 export function useAutoCompleteAppointments() {
   const [isRunning, setIsRunning] = useState(false);
   const [lastRunTime, setLastRunTime] = useState<Date | null>(null);
+  const [lastUpdateCount, setLastUpdateCount] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Função para executar a função RPC do Supabase (agora com logs detalhados)
+  // Função para executar a função RPC do Supabase com invalidação agressiva
   const runRpcAutoComplete = async () => {
     try {
       console.log("⏱️ Executando auto_complete_past_appointments via RPC...");
@@ -24,30 +25,14 @@ export function useAutoCompleteAppointments() {
         return { success: false, updated: 0, error: error.message };
       }
       
-      // Log detalhado de todos os resultados
       console.log("📊 Resultados completos da função RPC:", data);
       
       // Filtrar os resultados para incluir apenas atualizações
       const updated = data ? data.filter((item: any) => item.updated === true) : [];
-      const notUpdated = data ? data.filter((item: any) => item.updated === false) : [];
       const totalUpdated = updated.length;
       
       console.log(`✅ RPC auto_complete_past_appointments: ${totalUpdated} agendamentos atualizados`);
       console.log("🔄 Agendamentos atualizados:", updated);
-      console.log("⏸️ Agendamentos não atualizados:", notUpdated);
-      
-      // Log específico para agendamentos de hoje às 14:00
-      const todayStr = new Date().toISOString().split('T')[0];
-      const appointments14h = data ? data.filter((item: any) => 
-        item.appointment_date === todayStr && item.appointment_time === '14:00'
-      ) : [];
-      
-      if (appointments14h.length > 0) {
-        console.log("🎯 Agendamentos encontrados para hoje às 14:00:", appointments14h);
-      } else {
-        console.log("🔍 Nenhum agendamento encontrado para hoje às 14:00");
-        console.log("📅 Procurando por data:", todayStr);
-      }
       
       return { success: true, updated: totalUpdated, details: updated };
       
@@ -82,6 +67,66 @@ export function useAutoCompleteAppointments() {
       return { success: false, updated: 0, error: String(err) };
     }
   };
+
+  // Invalidação agressiva e completa do cache
+  const forceCompleteInvalidation = async () => {
+    console.log("🔥 INICIANDO INVALIDAÇÃO AGRESSIVA DO CACHE...");
+    
+    try {
+      // 1. Invalidar TODAS as queries relacionadas a agendamentos
+      await queryClient.invalidateQueries({
+        predicate: query => {
+          const queryKey = Array.isArray(query.queryKey) ? query.queryKey : [];
+          return queryKey.some(key => 
+            typeof key === 'string' && 
+            (key.includes('appointment') || 
+             key.includes('agendamento') ||
+             key.includes('dashboard') ||
+             key.includes('week') ||
+             key.includes('upcoming') ||
+             key.includes('clientes'))
+          );
+        }
+      });
+
+      // 2. Cancelar todas as queries em execução
+      await queryClient.cancelQueries();
+
+      // 3. Forçar refetch imediato de queries críticas
+      const criticalQueries = [
+        ['appointments'],
+        ['agendamentos'],
+        ['dashboard-appointments'],
+        ['dashboard-data'],
+        ['weekly-appointments'],
+        ['week-appointments'],
+        ['upcoming-appointments'],
+        ['new-clients']
+      ];
+
+      await Promise.allSettled(
+        criticalQueries.map(queryKey => 
+          queryClient.refetchQueries({ 
+            queryKey, 
+            type: 'active',
+            exact: false 
+          })
+        )
+      );
+
+      // 4. Invalidar novamente para garantir
+      await queryClient.invalidateQueries();
+
+      // 5. Aguardar um pouco para sincronização
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      console.log("✅ INVALIDAÇÃO AGRESSIVA COMPLETA");
+      return true;
+    } catch (error) {
+      console.error("❌ Erro na invalidação agressiva:", error);
+      return false;
+    }
+  };
   
   const runAutoComplete = async () => {
     if (isRunning) {
@@ -90,9 +135,11 @@ export function useAutoCompleteAppointments() {
     }
     
     setIsRunning(true);
+    const startTime = new Date();
+    
     try {
-      console.log("🔧 Iniciando auto-complete...");
-      console.log("🕐 Timestamp de início:", new Date().toISOString());
+      console.log("🚀 INICIANDO AUTO-COMPLETE COM INVALIDAÇÃO AGRESSIVA");
+      console.log("🕐 Timestamp de início:", startTime.toISOString());
       
       // Tentar primeiro via RPC
       let result = await runRpcAutoComplete();
@@ -104,15 +151,16 @@ export function useAutoCompleteAppointments() {
       }
       
       setLastRunTime(new Date());
+      setLastUpdateCount(result.updated);
       
-      // Se algum agendamento foi atualizado, invalidar os caches e mostrar notificação
+      // SEMPRE invalidar cache, independente de atualizações
+      console.log("🔄 Executando invalidação completa do cache...");
+      await forceCompleteInvalidation();
+      
+      // Se algum agendamento foi atualizado, mostrar notificação
       if (result.updated > 0) {
-        console.log(`✅ ${result.updated} agendamentos antigos foram automaticamente concluídos.`);
+        console.log(`✅ ${result.updated} agendamentos foram automaticamente concluídos.`);
         
-        // Forçar invalidação completa do cache de agendamentos
-        await forceInvalidateCache();
-        
-        // Mostrar notificação de sucesso
         toast({
           title: "Agendamentos atualizados!",
           description: `${result.updated} agendamentos antigos foram automaticamente concluídos.`,
@@ -120,7 +168,6 @@ export function useAutoCompleteAppointments() {
         });
       } else {
         console.log("✅ Nenhum agendamento antigo encontrado para ser concluído.");
-        console.log("📝 Verificando se há agendamentos das 14:00 que deveriam ter sido concluídos...");
       }
       
       return { success: true, updated: result.updated };
@@ -140,67 +187,42 @@ export function useAutoCompleteAppointments() {
     }
   };
 
-  // Método auxiliar para forçar invalidação de cache
-  const forceInvalidateCache = async () => {
-    console.log("🔄 Forçando invalidação completa do cache de agendamentos...");
-    
-    try {
-      // Invalidar todas as queries relacionadas a agendamentos usando predicados para maior abrangência
-      await queryClient.invalidateQueries({ 
-        predicate: query => {
-          if (Array.isArray(query.queryKey)) {
-            return query.queryKey.some(key => 
-              typeof key === 'string' && 
-              (key.includes('appointment') || 
-               key.includes('agendamento') ||
-               key.includes('dashboard'))
-            );
-          }
-          return false;
-        }
-      });
-      
-      // Forçar refetch de queries específicas para garantir dados frescos
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['appointments'] }),
-        queryClient.refetchQueries({ queryKey: ['dashboard-appointments'] }),
-        queryClient.refetchQueries({ queryKey: ['dashboard-data'] }),
-        queryClient.refetchQueries({ queryKey: ['weekly-appointments'] }),
-        queryClient.refetchQueries({ queryKey: ['week-appointments'] }),
-        queryClient.refetchQueries({ queryKey: ['upcoming-appointments'] })
-      ]);
-      
-      console.log("✅ Cache de agendamentos invalidado com sucesso");
-    } catch (error) {
-      console.error("❌ Erro ao invalidar cache:", error);
-    }
-  };
-
-  // Função para verificação manual imediata
+  // Função para verificação manual imediata com feedback visual
   const runImmediateCheck = async () => {
-    console.log("🚀 Executando verificação manual imediata...");
-    return await runAutoComplete();
+    console.log("🚀 VERIFICAÇÃO MANUAL IMEDIATA SOLICITADA");
+    const result = await runAutoComplete();
+    
+    // Feedback visual adicional para verificação manual
+    if (result.success) {
+      toast({
+        title: "Verificação completa",
+        description: `Verificação manual concluída. ${result.updated} agendamentos atualizados.`,
+        duration: 3000
+      });
+    }
+    
+    return result;
   };
 
-  // Executar ao montar o componente e periodicamente a cada 1 minuto (ainda mais frequente para debug)
+  // Executar ao montar o componente e periodicamente a cada 2 minutos
   useEffect(() => {
-    console.log("🎬 useAutoCompleteAppointments hook montado");
+    console.log("🎬 useAutoCompleteAppointments hook montado - configurando timers");
     
     // Executar imediatamente quando o componente montar
-    const timer = setTimeout(() => {
+    const initialTimer = setTimeout(() => {
       console.log("🏃‍♂️ Executando primeira verificação após mount...");
       runAutoComplete();
-    }, 1000);
+    }, 2000); // 2 segundos após mount para garantir que tudo esteja carregado
     
-    // E então a cada 1 minuto para debug mais rápido
+    // E então a cada 2 minutos
     const interval = setInterval(() => {
-      console.log("⏰ Executando verificação periódica...");
+      console.log("⏰ Executando verificação periódica automática...");
       runAutoComplete();
-    }, 1 * 60 * 1000);
+    }, 2 * 60 * 1000); // 2 minutos
     
     return () => {
       console.log("🧹 Limpando timers do useAutoCompleteAppointments");
-      clearTimeout(timer);
+      clearTimeout(initialTimer);
       clearInterval(interval);
     };
   }, []);
@@ -208,8 +230,9 @@ export function useAutoCompleteAppointments() {
   return { 
     runAutoComplete, 
     runImmediateCheck,
+    forceCompleteInvalidation,
     isRunning, 
     lastRunTime,
-    forceInvalidateCache
+    lastUpdateCount
   };
 }

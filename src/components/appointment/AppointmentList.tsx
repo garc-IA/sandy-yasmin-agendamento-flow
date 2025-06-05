@@ -25,10 +25,16 @@ function AppointmentListComponent({
   showAll = false,
   statusFilter = "all"
 }: AppointmentListProps) {
-  // Auto-complete management
-  const { isRunning, handleManualCheck, markNeedsRefresh } = useAppointmentAutoComplete(onAppointmentUpdated);
+  // Auto-complete management com enhanced sync
+  const { 
+    isRunning, 
+    lastRunTime, 
+    lastUpdateCount,
+    handleManualCheck, 
+    markNeedsRefresh 
+  } = useAppointmentAutoComplete(onAppointmentUpdated);
   
-  // Dialog state management - now including setSelectedAppointment
+  // Dialog state management
   const {
     selectedAppointment,
     setSelectedAppointment,
@@ -76,7 +82,12 @@ function AppointmentListComponent({
     return (
       <div className="space-y-6">
         <div className="flex justify-end mb-4">
-          <ManualCheckButton onClick={handleManualCheck} isRunning={isRunning} />
+          <ManualCheckButton 
+            onClick={handleManualCheck} 
+            isRunning={isRunning}
+            lastRunTime={lastRunTime}
+            lastUpdateCount={lastUpdateCount}
+          />
         </div>
         <AppointmentListSkeleton count={5} />
       </div>
@@ -85,13 +96,23 @@ function AppointmentListComponent({
 
   // If no appointments, show empty state
   if (shouldShowEmpty || isEmpty) {
-    return <EmptyState onManualCheck={handleManualCheck} isRunning={isRunning} />;
+    return (
+      <EmptyState 
+        onManualCheck={handleManualCheck} 
+        isRunning={isRunning} 
+      />
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-end mb-4">
-        <ManualCheckButton onClick={handleManualCheck} isRunning={isRunning} />
+        <ManualCheckButton 
+          onClick={handleManualCheck} 
+          isRunning={isRunning}
+          lastRunTime={lastRunTime}
+          lastUpdateCount={lastUpdateCount}
+        />
       </div>
       
       <AppointmentSections
