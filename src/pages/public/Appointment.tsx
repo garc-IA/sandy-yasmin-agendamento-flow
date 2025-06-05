@@ -12,12 +12,7 @@ import Confirmation from "@/components/appointment/Confirmation";
 import { useSystemAvailability } from "@/hooks/useSystemAvailability";
 import { SystemMaintenanceMessage } from "@/components/appointment/SystemMaintenanceMessage";
 import { Loader2 } from "lucide-react";
-
-interface Customer {
-  nome: string;
-  telefone: string;
-  email: string;
-}
+import { Client } from "@/lib/supabase";
 
 interface Servico {
   id: string;
@@ -44,11 +39,7 @@ export default function Appointment() {
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>("");
-  const [customer, setCustomer] = useState<Customer>({
-    nome: "",
-    telefone: "",
-    email: "",
-  });
+  const [client, setClient] = useState<Client | null>(null);
   const [appointmentId, setAppointmentId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -80,13 +71,13 @@ export default function Appointment() {
     setCurrentStep(3);
   };
 
-  const handleCustomerSubmit = (customerData: Customer) => {
-    setCustomer(customerData);
+  const handleCustomerSubmit = (clientData: Client) => {
+    setClient(clientData);
     setCurrentStep(4);
   };
 
   const handleConfirmAppointment = async () => {
-    if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
+    if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime || !client) {
       toast({
         title: "Erro",
         description: "Dados do agendamento incompletos",
@@ -101,9 +92,9 @@ export default function Appointment() {
       const { data: clienteData, error: clienteError } = await supabase.rpc(
         'criar_cliente',
         {
-          p_nome: customer.nome,
-          p_telefone: customer.telefone,
-          p_email: customer.email
+          p_nome: client.nome,
+          p_telefone: client.telefone,
+          p_email: client.email
         }
       );
 
@@ -158,13 +149,13 @@ export default function Appointment() {
     setSelectedProfessional(null);
     setSelectedDate(null);
     setSelectedTime("");
-    setCustomer({ nome: "", telefone: "", email: "" });
+    setClient(null);
     setAppointmentId("");
     setIsComplete(false);
   };
 
   // Prepare appointment data for confirmation component
-  const appointmentData = selectedService && selectedDate ? {
+  const appointmentData = selectedService && selectedDate && client ? {
     service: {
       ...selectedService,
       descricao: selectedService.descricao || ""
@@ -172,7 +163,7 @@ export default function Appointment() {
     professional_name: selectedProfessional?.nome || '',
     date: selectedDate.toISOString().split('T')[0],
     time: selectedTime,
-    client: customer,
+    client: client,
     professional_id: selectedProfessional?.id || ''
   } : null;
 
@@ -213,8 +204,8 @@ export default function Appointment() {
             
             {currentStep === 3 && (
               <CustomerForm
-                customer={customer}
-                updateCustomer={setCustomer}
+                client={client}
+                updateAppointmentData={({ client }) => setClient(client)}
                 nextStep={() => setCurrentStep(4)}
                 prevStep={handleBack}
               />
