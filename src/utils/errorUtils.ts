@@ -1,7 +1,9 @@
 
 /**
  * Utilitário para tratar e logar erros de forma consistente
+ * Atualizado para usar o novo sistema de logging consolidado
  */
+import { logger } from '@/utils/logger';
 
 // Função para logar erros no console com formatação melhorada
 export function logError(
@@ -9,16 +11,7 @@ export function logError(
   error: unknown, 
   additionalInfo?: Record<string, any>
 ): void {
-  console.error(`❌ Erro em ${context}:`, error);
-  
-  if (additionalInfo) {
-    console.error(`ℹ️ Informações adicionais:`, additionalInfo);
-  }
-  
-  // Se for um erro com stack trace, exibir o stack
-  if (error instanceof Error && error.stack) {
-    console.error(`📚 Stack trace:`, error.stack);
-  }
+  logger.error(`Erro em ${context}`, { error, additionalInfo });
 }
 
 // Função para logar erros de agendamento
@@ -27,10 +20,7 @@ export function logAppointmentError(
   appointmentId: string | null | undefined,
   error: unknown
 ): void {
-  logError(`Agendamento (${action})`, error, {
-    appointmentId: appointmentId || 'não informado',
-    timestamp: new Date().toISOString()
-  });
+  logger.appointment.error(`${action}`, appointmentId || 'unknown', error);
 }
 
 // Função para logar operações de banco de dados
@@ -39,13 +29,7 @@ export function logDatabaseOperation(
   table: string,
   result: { data?: any; error?: any; success?: boolean }
 ): void {
-  if (result.error) {
-    console.error(`❌ Erro em operação ${operation} na tabela ${table}:`, result.error);
-  } else {
-    console.log(`✅ Operação ${operation} na tabela ${table} concluída com sucesso.`, {
-      affectedRows: Array.isArray(result.data) ? result.data.length : (result.data ? 1 : 0)
-    });
-  }
+  logger.database.operation(operation, table, result);
 }
 
 // Função para obter mensagem de erro amigável
