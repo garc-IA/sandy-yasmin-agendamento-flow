@@ -6,6 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStudioSettings } from "@/context/theme-context";
 import { PersonalizationSection } from "@/components/admin/tools/PersonalizationSection";
+import { DailyNotificationSettings } from "@/components/admin/daily-notifications/DailyNotificationSettings";
 
 const Tools = () => {
   const { studioTheme, updateStudioTheme } = useStudioSettings();
@@ -38,6 +39,7 @@ const Tools = () => {
       <Tabs defaultValue="personalizacao">
         <TabsList className="mb-4">
           <TabsTrigger value="personalizacao">Personalização</TabsTrigger>
+          <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="configuracoes">Configurações Gerais</TabsTrigger>
         </TabsList>
         
@@ -56,6 +58,10 @@ const Tools = () => {
               Salvar Alterações
             </Button>
           </div>
+        </TabsContent>
+
+        <TabsContent value="notificacoes" className="space-y-4">
+          <DailyNotificationSettings />
         </TabsContent>
         
         <TabsContent value="configuracoes">
