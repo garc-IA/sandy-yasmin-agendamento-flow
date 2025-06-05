@@ -24,7 +24,7 @@ interface Servico {
   nome: string;
   valor: number;
   duracao_em_minutos: number;
-  descricao?: string;
+  descricao: string;
   created_at: string;
   ativo: boolean;
   categoria_id: string | null;
@@ -165,7 +165,10 @@ export default function Appointment() {
 
   // Prepare appointment data for confirmation component
   const appointmentData = selectedService && selectedDate ? {
-    service: selectedService,
+    service: {
+      ...selectedService,
+      descricao: selectedService.descricao || ""
+    },
     professional_name: selectedProfessional?.nome || '',
     date: selectedDate.toISOString().split('T')[0],
     time: selectedTime,
@@ -184,21 +187,36 @@ export default function Appointment() {
           </CardHeader>
           <CardContent className="p-6">
             {currentStep === 1 && (
-              <ServiceSelection onServiceSelect={handleServiceSelect} />
+              <ServiceSelection 
+                selectedService={selectedService}
+                updateAppointmentData={({ service }) => setSelectedService(service)}
+                nextStep={() => setCurrentStep(2)}
+              />
             )}
             
             {currentStep === 2 && selectedService && (
               <DateAndTimeSelector
-                service={selectedService}
-                onDateTimeSelect={handleDateTimeSelect}
-                onBack={handleBack}
+                selectedService={selectedService}
+                selectedDate={selectedDate}
+                selectedTime={selectedTime}
+                updateAppointmentData={(data) => {
+                  if (data.date) setSelectedDate(data.date);
+                  if (data.time) setSelectedTime(data.time);
+                  if (data.professional_id && data.professional_name) {
+                    setSelectedProfessional({ id: data.professional_id, nome: data.professional_name });
+                  }
+                }}
+                nextStep={() => setCurrentStep(3)}
+                prevStep={handleBack}
               />
             )}
             
             {currentStep === 3 && (
               <CustomerForm
-                onSubmit={handleCustomerSubmit}
-                onBack={handleBack}
+                customer={customer}
+                updateCustomer={setCustomer}
+                nextStep={() => setCurrentStep(4)}
+                prevStep={handleBack}
               />
             )}
             
