@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ManualCheckButton } from "./ManualCheckButton";
 
 interface EmptyStateProps {
-  onManualCheck: () => void;
+  onManualCheck: () => Promise<any>;
   isRunning: boolean;
 }
 
