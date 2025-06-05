@@ -5,9 +5,10 @@ import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { AppointmentWithDetails } from "@/types/appointment.types";
 import { useAppointmentCache } from "@/hooks/appointment/useAppointmentCache";
+import { logger } from "@/utils/logger";
 
 export function useAppointmentsData() {
-  // State for filters
+  // Estados para filtros
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [professionalFilter, setProfessionalFilter] = useState<string>("all");
@@ -28,12 +29,12 @@ export function useAppointmentsData() {
       
       return data.id;
     } catch (error) {
-      console.error("Erro ao obter ID do admin:", error);
+      logger.error("Erro ao obter ID do admin", error);
       return null;
     }
   };
 
-  // Fetch appointments
+  // Buscar agendamentos
   const { 
     data: appointments = [], 
     isLoading, 
@@ -43,15 +44,12 @@ export function useAppointmentsData() {
     queryKey: ["appointments", selectedDate, statusFilter, professionalFilter, searchQuery],
     queryFn: async () => {
       try {
-        console.log("🔍 Fetching appointments with filters:", { 
+        logger.info("Buscando agendamentos com filtros", { 
           date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : null,
           status: statusFilter, 
           professional: professionalFilter,
           search: searchQuery
         });
-        
-        // Obtém o ID do admin para filtrar agendamentos
-        const adminId = await getAdminId();
         
         let query = supabase
           .from("agendamentos")
@@ -62,17 +60,17 @@ export function useAppointmentsData() {
             profissional:profissionais(*)
           `);
         
-        // Apply date filter
+        // Aplicar filtro de data
         if (selectedDate) {
           query = query.eq("data", format(selectedDate, "yyyy-MM-dd"));
         }
         
-        // Apply status filter
+        // Aplicar filtro de status
         if (statusFilter !== "all") {
           query = query.eq("status", statusFilter);
         }
         
-        // Apply professional filter
+        // Aplicar filtro de profissional
         if (professionalFilter !== "all") {
           query = query.eq("profissional_id", professionalFilter);
         }
@@ -80,43 +78,38 @@ export function useAppointmentsData() {
         const { data, error } = await query.order("hora");
         
         if (error) {
-          console.error("❌ Error fetching appointments:", error);
+          logger.error("Erro ao buscar agendamentos", error);
           throw error;
         }
         
-        console.log(`✅ Retrieved ${data?.length || 0} appointments`);
+        logger.info(`Recuperados ${data?.length || 0} agendamentos`);
         
-        // Apply search filter on client side
+        // Aplicar filtro de busca no lado do cliente
         if (searchQuery && data) {
           const lowerQuery = searchQuery.toLowerCase();
-          return data.filter((appt: any) => 
-            appt.cliente.nome?.toLowerCase().includes(lowerQuery) ||
-            appt.cliente.telefone?.includes(searchQuery) ||
-            appt.cliente.email?.toLowerCase().includes(lowerQuery) ||
-            appt.servico.nome?.toLowerCase().includes(lowerQuery)
+          return data.filter((appointment: any) => 
+            appointment.cliente.nome?.toLowerCase().includes(lowerQuery) ||
+            appointment.cliente.telefone?.includes(searchQuery) ||
+            appointment.cliente.email?.toLowerCase().includes(lowerQuery) ||
+            appointment.servico.nome?.toLowerCase().includes(lowerQuery)
           );
         }
         
         return data || [];
       } catch (err) {
-        console.error("❌ Failed to fetch appointments:", err);
+        logger.error("Falha ao buscar agendamentos", err);
         throw err;
       }
     },
-    // Disable stale time to always get fresh data
     staleTime: 0,
-    // Ensure refetching when the component gains focus
     refetchOnWindowFocus: true,
   });
 
-  // Fetch professionals for filter
+  // Buscar profissionais para filtro
   const { data: professionals = [] } = useQuery({
     queryKey: ["professionals"],
     queryFn: async () => {
       try {
-        // Obtém o ID do admin para filtrar profissionais
-        const adminId = await getAdminId();
-        
         const { data, error } = await supabase
           .from("profissionais")
           .select("*")
@@ -125,27 +118,27 @@ export function useAppointmentsData() {
         if (error) throw error;
         return data || [];
       } catch (err) {
-        console.error("❌ Failed to fetch professionals:", err);
+        logger.error("Falha ao buscar profissionais", err);
         return [];
       }
     },
   });
 
-  // Handle appointment update
+  // Lidar com atualização de agendamento
   const handleAppointmentUpdated = async () => {
-    console.log("🔄 Appointment updated, refreshing data...");
+    logger.info("Agendamento atualizado, atualizando dados...");
     
-    // Primeiro, forçar a atualização completa do cache
+    // Forçar atualização completa do cache
     await forceRefetchAll();
     
-    // Em seguida, refetch específico desta página
+    // Refetch específico desta página
     await refetch();
     
-    console.log("✅ Data refresh complete");
+    logger.info("Atualização de dados completa");
   };
 
   return {
-    // Filter state
+    // Estado dos filtros
     selectedDate,
     setSelectedDate,
     statusFilter,
@@ -155,18 +148,17 @@ export function useAppointmentsData() {
     searchQuery,
     setSearchQuery,
     
-    // Data
+    // Dados
     appointments: appointments as AppointmentWithDetails[],
     professionals,
     isLoading,
     error,
     
-    // Actions
+    // Ações
     handleAppointmentUpdated,
     refetch,
     
-    // Always show all sections, regardless of filter
-    // This ensures all sections are visible but will be controlled by the AppointmentList component
+    // Sempre mostrar todas as seções, independente do filtro
     showAll: true
   };
 }

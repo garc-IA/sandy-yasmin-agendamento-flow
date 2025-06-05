@@ -1,10 +1,11 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
+import { logger } from "@/utils/logger";
 
 interface UseWeeklyAppointmentsProps {
   selectedDate: Date;
@@ -24,7 +25,7 @@ export function useWeeklyAppointments({
   const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0, locale: ptBR });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  // Gerar time slots das 8h às 18h
+  // Gerar slots de tempo das 8h às 18h
   const timeSlots = Array.from({ length: 21 }, (_, i) => {
     const hour = Math.floor(i / 2) + 8;
     const minute = (i % 2) * 30;
@@ -44,6 +45,7 @@ export function useWeeklyAppointments({
           .order("nome");
 
         if (error) {
+          logger.error("Erro ao carregar profissionais", error);
           toast({
             title: "Erro ao carregar profissionais",
             description: error.message,
@@ -53,7 +55,7 @@ export function useWeeklyAppointments({
         }
         return data || [];
       } catch (err) {
-        console.error("Erro ao buscar profissionais:", err);
+        logger.error("Erro ao buscar profissionais", err);
         throw err;
       }
     },
@@ -91,6 +93,7 @@ export function useWeeklyAppointments({
         const { data, error } = await query.order("data").order("hora");
 
         if (error) {
+          logger.error("Erro ao carregar agendamentos", error);
           toast({
             title: "Erro ao carregar agendamentos",
             description: error.message,
@@ -101,7 +104,7 @@ export function useWeeklyAppointments({
         
         return data || [];
       } catch (err) {
-        console.error("Erro ao buscar agendamentos:", err);
+        logger.error("Erro ao buscar agendamentos", err);
         throw err;
       }
     },

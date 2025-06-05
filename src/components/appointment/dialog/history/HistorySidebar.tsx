@@ -8,7 +8,11 @@ interface HistorySidebarProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function HistorySidebar({ appointmentId, isOpen, onOpenChange }: HistorySidebarProps) {
+export function HistorySidebar({ 
+  appointmentId, 
+  isOpen, 
+  onOpenChange 
+}: HistorySidebarProps) {
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent>

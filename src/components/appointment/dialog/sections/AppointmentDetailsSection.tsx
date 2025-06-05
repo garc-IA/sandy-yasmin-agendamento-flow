@@ -7,7 +7,11 @@ interface AppointmentDetailsSectionProps {
   profissional?: string;
 }
 
-export function AppointmentDetailsSection({ data, hora, profissional }: AppointmentDetailsSectionProps) {
+export function AppointmentDetailsSection({ 
+  data, 
+  hora, 
+  profissional 
+}: AppointmentDetailsSectionProps) {
   return (
     <div>
       <h3 className="font-medium mb-2">Detalhes do Horário</h3>

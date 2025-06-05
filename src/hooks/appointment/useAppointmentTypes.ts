@@ -3,24 +3,24 @@ import { AppointmentStatus, AppointmentWithDetails } from "@/types/appointment.t
 import { PostgrestError } from "@supabase/supabase-js";
 
 /**
- * Common types used across appointment hooks
+ * Tipos comuns usados em hooks de agendamento
  */
 
-// Database operation result types
+// Tipos de resultado de operações de banco de dados
 export type DatabaseResult<T = any> = {
   data: T | null;
   error: PostgrestError | Error | null;
   success: boolean;
 };
 
-// Status update parameters
+// Parâmetros de atualização de status
 export type StatusUpdateParams = {
   appointmentId: string;
   status: AppointmentStatus;
   reason?: string;
 };
 
-// Reschedule parameters
+// Parâmetros de reagendamento
 export type RescheduleParams = {
   appointmentId: string;
   date: Date;
@@ -28,10 +28,10 @@ export type RescheduleParams = {
   professionalId: string;
 };
 
-// Appointment action callback type
+// Tipo de callback para ações de agendamento
 export type AppointmentActionCallback = () => void;
 
-// Dialog state for appointment actions
+// Estado do diálogo para ações de agendamento
 export interface AppointmentDialogState {
   selectedAppointment: AppointmentWithDetails | null;
   appointmentToUpdate: { id: string; status: AppointmentStatus } | null;
