@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +7,7 @@ import { useStudioSettings } from "@/context/theme-context";
 import { PersonalizationSection } from "@/components/admin/tools/PersonalizationSection";
 import { DailyNotificationSettings } from "@/components/admin/daily-notifications/DailyNotificationSettings";
 import { BusinessHoursSettings } from "@/components/admin/daily-notifications/BusinessHoursSettings";
+import { ReminderSettings } from "@/components/admin/daily-notifications/ReminderSettings";
 
 const Tools = () => {
   const { studioTheme, updateStudioTheme } = useStudioSettings();
