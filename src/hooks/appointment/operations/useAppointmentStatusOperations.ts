@@ -5,7 +5,6 @@
  */
 import { AppointmentStatus } from '@/types/appointment.types';
 import { logger } from '@/utils/logger';
-import { isInPast } from '@/lib/dateUtils';
 import { useAppointmentCore } from '../core/useAppointmentCore';
 
 export const useAppointmentStatusOperations = () => {
@@ -36,18 +35,6 @@ export const useAppointmentStatusOperations = () => {
     
     try {
       logger.appointment.action('Atualizando status', appointmentId, { status, reason });
-
-      // Validate for completion status
-      if (status === 'concluido') {
-        const { data: appointment, success } = await database.getAppointmentById(appointmentId);
-        
-        if (success && appointment) {
-          if (!isInPast(appointment.data, appointment.hora)) {
-            showErrorToast(new Error("Não é possível marcar como concluído um agendamento futuro"));
-            return false;
-          }
-        }
-      }
 
       // Update appointment status
       const { success, error } = await database.updateAppointmentStatus(appointmentId, status, reason);

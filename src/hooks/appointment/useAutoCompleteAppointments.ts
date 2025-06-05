@@ -66,9 +66,9 @@ export function useAutoCompleteAppointments() {
     
     setIsRunning(true);
     try {
-      console.log("🔧 Iniciando auto-complete com função SQL e RLS corrigidos...");
+      console.log("🔧 Iniciando auto-complete...");
       
-      // Tentar primeiro via RPC (que agora está corrigido com RLS)
+      // Tentar primeiro via RPC
       let result = await runRpcAutoComplete();
       
       // Se falhar, tentar via Edge Function como fallback
@@ -149,15 +149,15 @@ export function useAutoCompleteAppointments() {
     }
   };
 
-  // Executar ao montar o componente e periodicamente a cada 5 minutos
+  // Executar ao montar o componente e periodicamente a cada 2 minutos (mais frequente)
   useEffect(() => {
     // Executar imediatamente quando o componente montar
     const timer = setTimeout(() => {
       runAutoComplete();
     }, 1000);
     
-    // E então a cada 5 minutos
-    const interval = setInterval(runAutoComplete, 5 * 60 * 1000);
+    // E então a cada 2 minutos (ao invés de 5)
+    const interval = setInterval(runAutoComplete, 2 * 60 * 1000);
     
     return () => {
       clearTimeout(timer);

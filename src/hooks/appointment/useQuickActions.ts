@@ -3,7 +3,6 @@ import { useCallback } from "react";
 import { AppointmentWithDetails, AppointmentStatus } from "@/types/appointment.types";
 import { useAppointmentOperations } from "./useAppointmentOperations";
 import { useToast } from "@/hooks/use-toast";
-import { isInPast } from "@/lib/dateUtils";
 
 interface UseQuickActionsProps {
   onAppointmentUpdated?: () => void;
@@ -14,16 +13,6 @@ export function useQuickActions({ onAppointmentUpdated }: UseQuickActionsProps =
   const { toast } = useToast();
 
   const handleQuickComplete = useCallback(async (appointment: AppointmentWithDetails): Promise<boolean> => {
-    // Validate that appointment is not in the future
-    if (!isInPast(appointment.data, appointment.hora)) {
-      toast({
-        title: "Operação não permitida",
-        description: "Não é possível marcar como concluído um agendamento futuro.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
     try {
       const success = await updateStatus(appointment.id, "concluido");
       
@@ -88,13 +77,6 @@ export function useQuickActions({ onAppointmentUpdated }: UseQuickActionsProps =
       return {
         valid: false,
         message: "Apenas agendamentos ativos podem ser alterados."
-      };
-    }
-
-    if (action === "concluido" && !isInPast(appointment.data, appointment.hora)) {
-      return {
-        valid: false,
-        message: "Não é possível marcar como concluído um agendamento futuro."
       };
     }
 
