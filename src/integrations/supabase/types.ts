@@ -18,8 +18,10 @@ export type Database = {
           horario_abertura: string | null
           horario_fechamento: string | null
           id: string
+          mensagem_manutencao: string | null
           nome: string | null
           senha: string
+          sistema_ativo: boolean | null
           studio_name: string | null
           telefone: string | null
         }
@@ -31,8 +33,10 @@ export type Database = {
           horario_abertura?: string | null
           horario_fechamento?: string | null
           id?: string
+          mensagem_manutencao?: string | null
           nome?: string | null
           senha: string
+          sistema_ativo?: boolean | null
           studio_name?: string | null
           telefone?: string | null
         }
@@ -44,8 +48,10 @@ export type Database = {
           horario_abertura?: string | null
           horario_fechamento?: string | null
           id?: string
+          mensagem_manutencao?: string | null
           nome?: string | null
           senha?: string
+          sistema_ativo?: boolean | null
           studio_name?: string | null
           telefone?: string | null
         }

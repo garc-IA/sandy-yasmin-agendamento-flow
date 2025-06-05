@@ -1,137 +1,43 @@
+import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AppointmentSteps } from "@/components/appointment/AppointmentSteps";
+import { useSystemAvailability } from "@/hooks/useSystemAvailability";
+import { SystemMaintenanceMessage } from "@/components/appointment/SystemMaintenanceMessage";
+import { Loader2 } from "lucide-react";
 
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import AppointmentSteps from "@/components/appointment/AppointmentSteps";
-import ServiceSelection from "@/components/appointment/ServiceSelection";
-import DateSelection from "@/components/appointment/DateSelection";
-import CustomerForm from "@/components/appointment/CustomerForm";
-import Confirmation from "@/components/appointment/Confirmation";
-import { Service, Client } from "@/lib/supabase";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader } from "lucide-react";
-import { format } from "date-fns";
+export default function SalonAppointment() {
+  const { salonUrl } = useParams<{ salonUrl: string }>();
+  const { isSystemActive, maintenanceMessage, isLoading } = useSystemAvailability();
 
-type AppointmentData = {
-  service: Service | null;
-  professional_id: string | null;
-  professional_name?: string | null;
-  date: Date | null;
-  time: string | null;
-  client: Client | null;
-};
-
-const SalonAppointment = () => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [appointmentData, setAppointmentData] = useState<AppointmentData>({
-    service: null,
-    professional_id: null,
-    professional_name: null,
-    date: null,
-    time: null,
-    client: null,
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  const nextStep = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-      window.scrollTo(0, 0);
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-      window.scrollTo(0, 0);
-    }
-  };
-
-  const updateAppointmentData = (data: Partial<AppointmentData>) => {
-    setAppointmentData({ ...appointmentData, ...data });
-  };
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <ServiceSelection
-            selectedService={appointmentData.service}
-            updateAppointmentData={updateAppointmentData}
-            nextStep={nextStep}
-          />
-        );
-      case 2:
-        return (
-          <DateSelection
-            selectedService={appointmentData.service}
-            selectedDate={appointmentData.date}
-            selectedTime={appointmentData.time}
-            professionalId={appointmentData.professional_id}
-            updateAppointmentData={updateAppointmentData}
-            nextStep={nextStep}
-            prevStep={prevStep}
-          />
-        );
-      case 3:
-        return (
-          <CustomerForm
-            client={appointmentData.client}
-            updateAppointmentData={updateAppointmentData}
-            nextStep={nextStep}
-            prevStep={prevStep}
-          />
-        );
-      case 4:
-        // Convert Date to string for Confirmation component
-        const confirmationData = {
-          ...appointmentData,
-          date: appointmentData.date ? format(appointmentData.date, 'yyyy-MM-dd') : '',
-        };
-        
-        return (
-          <Confirmation
-            appointmentData={confirmationData}
-            isSubmitting={isSubmitting}
-            isComplete={isComplete}
-            setIsSubmitting={setIsSubmitting}
-            setIsComplete={setIsComplete}
-            prevStep={prevStep}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  if (loading) {
+  // Se ainda está carregando o status do sistema
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
+  // Se o sistema não está ativo, mostrar mensagem de manutenção
+  if (!isSystemActive) {
+    return <SystemMaintenanceMessage message={maintenanceMessage} />;
+  }
+
   return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-center font-playfair mb-2">
-        Agendamento Online - Studio Sandy Yasmin
-      </h1>
-      <p className="text-center text-muted-foreground mb-8">
-        Reserve seu horário em poucos passos
-      </p>
-
-      <AppointmentSteps currentStep={currentStep} />
-
-      <Card className="mt-8 shadow-md animate-fade-in">
-        <CardContent className="pt-6">{renderStepContent()}</CardContent>
-      </Card>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+      <div className="container mx-auto py-8 px-4">
+        <Card className="max-w-4xl mx-auto shadow-xl">
+          <CardHeader className="text-center bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+            <CardTitle className="text-3xl font-bold">
+              Agendar no {salonUrl}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <AppointmentSteps />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-};
-
-export default SalonAppointment;
+}
