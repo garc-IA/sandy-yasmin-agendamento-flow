@@ -6,7 +6,6 @@ import { DateSelector } from "@/components/shared/date-time/DateSelector";
 import { ProfessionalSelector } from "@/components/shared/date-time/ProfessionalSelector";
 import { TimeSelector } from "@/components/shared/date-time/TimeSelector";
 import { useTimeSlots } from "@/components/shared/date-time/hooks/useTimeSlots";
-import { useAppointmentData } from "./hooks/useAppointmentData";
 import { useProfessionals } from "./hooks/useProfessionals";
 import { useDateValidation } from "@/hooks/useDateValidation";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +15,7 @@ import { supabase } from "@/lib/supabase";
 
 interface DateSelectionProps {
   selectedService: Service;
-  selectedDate: Date;
+  selectedDate: Date | null;
   selectedTime: string;
   updateAppointmentData: (data: any) => void;
   nextStep: () => void;
@@ -31,17 +30,11 @@ const DateAndTimeSelector = ({
   nextStep,
   prevStep,
 }: DateSelectionProps) => {
-  const {
-    date,
-    time,
-    professionalId,
-    professionalName,
-    handleDateSelect,
-    handleProfessionalSelect,
-    handleTimeSelect,
-    handleContinue
-  } = useAppointmentData(selectedService, selectedDate, selectedTime, updateAppointmentData);
-
+  const [date, setDate] = useState<Date | undefined>(selectedDate || undefined);
+  const [time, setTime] = useState<string>(selectedTime || "");
+  const [professionalId, setProfessionalId] = useState<string>("");
+  const [professionalName, setProfessionalName] = useState<string>("");
+  
   const { professionals, isLoading, error } = useProfessionals(date);
   const { toast } = useToast();
 
@@ -59,7 +52,6 @@ const DateAndTimeSelector = ({
       
       const formattedDate = format(date, 'yyyy-MM-dd');
       
-      // Buscar apenas agendamentos para o profissional e data selecionados
       const { data, error } = await supabase
         .from('agendamentos')
         .select('*')
@@ -85,35 +77,119 @@ const DateAndTimeSelector = ({
     appointments
   });
 
-  // When selecting a date, validate it and show appropriate messages
-  const onDateSelect = (newDate: Date | undefined) => {
+  const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
-      // Check if the date is a holiday (just for information)
       if (dateValidation.isHoliday(newDate)) {
         toast({
           title: "Data selecionada é um feriado",
           description: "O agendamento é permitido, mas verifique o funcionamento do estabelecimento nesta data.",
-          variant: "default", // Using default instead of warning which isn't a valid variant
+          variant: "default",
         });
       }
       
       if (dateValidation.isValidAppointmentDate(newDate)) {
-        handleDateSelect(newDate);
+        setDate(newDate);
+        // Clear professional and time when date changes
+        setProfessionalId("");
+        setProfessionalName("");
+        setTime("");
+        
+        // Update parent component
+        updateAppointmentData({
+          date: newDate,
+          time: "",
+          professional_id: "",
+          professional_name: ""
+        });
       }
     }
   };
 
-  const onProfessionalSelect = (id: string) => {
+  const handleProfessionalSelect = (id: string) => {
     const professional = professionals.find(p => p.id === id);
     if (professional) {
-      handleProfessionalSelect(id, professional.nome);
+      setProfessionalId(id);
+      setProfessionalName(professional.nome);
+      // Clear time when professional changes
+      setTime("");
+      
+      console.log("Profissional selecionado:", { id, nome: professional.nome });
+      
+      // Update parent component
+      updateAppointmentData({
+        date: date,
+        time: "",
+        professional_id: id,
+        professional_name: professional.nome
+      });
     }
   };
 
-  const onContinue = () => {
-    if (handleContinue()) {
-      nextStep();
+  const handleTimeSelect = (selectedTime: string) => {
+    setTime(selectedTime);
+    
+    console.log("Horário selecionado:", selectedTime);
+    console.log("Dados completos:", {
+      date,
+      time: selectedTime,
+      professional_id: professionalId,
+      professional_name: professionalName
+    });
+    
+    // Update parent component with complete data
+    updateAppointmentData({
+      date: date,
+      time: selectedTime,
+      professional_id: professionalId,
+      professional_name: professionalName
+    });
+  };
+
+  const handleContinue = () => {
+    if (!date) {
+      toast({
+        title: "Data obrigatória",
+        description: "Por favor, selecione uma data para o agendamento.",
+        variant: "destructive",
+      });
+      return false;
     }
+
+    if (!professionalId) {
+      toast({
+        title: "Profissional obrigatório",
+        description: "Por favor, selecione um profissional.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (!time) {
+      toast({
+        title: "Horário obrigatório",
+        description: "Por favor, selecione um horário.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    console.log("Dados finais antes de continuar:", {
+      date,
+      time,
+      professional_id: professionalId,
+      professional_name: professionalName
+    });
+
+    // Final update to ensure parent has all data
+    updateAppointmentData({
+      date: date,
+      time: time,
+      professional_id: professionalId,
+      professional_name: professionalName
+    });
+
+    nextStep();
+    return true;
   };
 
   return (
@@ -125,7 +201,7 @@ const DateAndTimeSelector = ({
       <div className="space-y-6">
         <DateSelector 
           date={date} 
-          onDateChange={onDateSelect}
+          onDateChange={handleDateSelect}
           disabledDates={(date) => dateValidation.isDateDisabled(date)}
         />
         
@@ -140,7 +216,7 @@ const DateAndTimeSelector = ({
           error={error}
           professionals={professionals}
           selectedProfessionalId={professionalId}
-          onProfessionalSelect={onProfessionalSelect}
+          onProfessionalSelect={handleProfessionalSelect}
         />
 
         <TimeSelector
@@ -154,7 +230,7 @@ const DateAndTimeSelector = ({
           <Button variant="outline" onClick={prevStep}>
             Voltar
           </Button>
-          <Button onClick={onContinue}>Continuar</Button>
+          <Button onClick={handleContinue}>Continuar</Button>
         </div>
       </div>
     </div>

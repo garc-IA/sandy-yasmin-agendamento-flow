@@ -64,11 +64,28 @@ export default function Appointment() {
     setCurrentStep(2);
   };
 
-  const handleDateTimeSelect = (professional: Professional, date: Date, time: string) => {
-    setSelectedProfessional(professional);
-    setSelectedDate(date);
-    setSelectedTime(time);
-    setCurrentStep(3);
+  const handleDateTimeSelect = (data: any) => {
+    console.log("Dados recebidos no handleDateTimeSelect:", data);
+    
+    if (data.date) {
+      setSelectedDate(data.date);
+    }
+    
+    if (data.time) {
+      setSelectedTime(data.time);
+    }
+    
+    if (data.professional_id && data.professional_name) {
+      setSelectedProfessional({
+        id: data.professional_id,
+        nome: data.professional_name
+      });
+      
+      console.log("Profissional definido:", {
+        id: data.professional_id,
+        nome: data.professional_name
+      });
+    }
   };
 
   const handleCustomerSubmit = (clientData: Client) => {
@@ -77,10 +94,25 @@ export default function Appointment() {
   };
 
   const handleConfirmAppointment = async () => {
+    console.log("Iniciando confirmação com dados:", {
+      selectedService,
+      selectedProfessional,
+      selectedDate,
+      selectedTime,
+      client
+    });
+
     if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime || !client) {
+      const missingData = [];
+      if (!selectedService) missingData.push("serviço");
+      if (!selectedProfessional) missingData.push("profissional");
+      if (!selectedDate) missingData.push("data");
+      if (!selectedTime) missingData.push("horário");
+      if (!client) missingData.push("dados do cliente");
+
       toast({
-        title: "Erro",
-        description: "Dados do agendamento incompletos",
+        title: "Dados incompletos",
+        description: `Faltam os seguintes dados: ${missingData.join(", ")}`,
         variant: "destructive",
       });
       return;
@@ -102,6 +134,15 @@ export default function Appointment() {
 
       // Criar agendamento
       const dataFormatada = selectedDate.toISOString().split('T')[0];
+      
+      console.log("Criando agendamento com:", {
+        cliente_id: clienteData,
+        servico_id: selectedService.id,
+        profissional_id: selectedProfessional.id,
+        data: dataFormatada,
+        hora: selectedTime,
+        status: 'agendado'
+      });
       
       const { data: agendamentoData, error: agendamentoError } = await supabase
         .from('agendamentos')
@@ -155,16 +196,16 @@ export default function Appointment() {
   };
 
   // Prepare appointment data for confirmation component
-  const appointmentData = selectedService && selectedDate && client ? {
+  const appointmentData = selectedService && selectedDate && selectedProfessional && client ? {
     service: {
       ...selectedService,
       descricao: selectedService.descricao || ""
     },
-    professional_name: selectedProfessional?.nome || '',
+    professional_name: selectedProfessional.nome,
+    professional_id: selectedProfessional.id,
     date: selectedDate.toISOString().split('T')[0],
     time: selectedTime,
-    client: client,
-    professional_id: selectedProfessional?.id || ''
+    client: client
   } : null;
 
   return (
@@ -190,13 +231,7 @@ export default function Appointment() {
                 selectedService={selectedService}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
-                updateAppointmentData={(data) => {
-                  if (data.date) setSelectedDate(data.date);
-                  if (data.time) setSelectedTime(data.time);
-                  if (data.professional_id && data.professional_name) {
-                    setSelectedProfessional({ id: data.professional_id, nome: data.professional_name });
-                  }
-                }}
+                updateAppointmentData={handleDateTimeSelect}
                 nextStep={() => setCurrentStep(3)}
                 prevStep={handleBack}
               />
