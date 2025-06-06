@@ -45,6 +45,7 @@ export default function AppointmentContainer() {
     setSelectedTime,
     setClient,
     setAppointmentId,
+    setIsSubmitting,
     setIsComplete,
     selectedService,
     selectedProfessional,
