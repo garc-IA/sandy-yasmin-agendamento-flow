@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Service } from "@/lib/supabase";
+import { Service, Professional } from "@/types/appointment.types";
 import { Button } from "@/components/ui/button";
 import { DateSelector } from "@/components/shared/date-time/DateSelector";
 import { ProfessionalSelector } from "@/components/shared/date-time/ProfessionalSelector";
@@ -17,7 +17,11 @@ interface DateSelectionProps {
   selectedService: Service;
   selectedDate: Date | null;
   selectedTime: string;
-  updateAppointmentData: (data: any) => void;
+  updateAppointmentData: (data: {
+    date?: Date;
+    time?: string;
+    professional?: Professional;
+  }) => void;
   nextStep: () => void;
   prevStep: () => void;
 }
@@ -32,21 +36,17 @@ const DateAndTimeSelector = ({
 }: DateSelectionProps) => {
   const [date, setDate] = useState<Date | undefined>(selectedDate || undefined);
   const [time, setTime] = useState<string>(selectedTime || "");
-  const [professionalId, setProfessionalId] = useState<string>("");
-  const [professionalName, setProfessionalName] = useState<string>("");
+  const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   
   const { professionals, isLoading, error } = useProfessionals(date);
   const { toast } = useToast();
   const { isDateDisabled, isHoliday, isValidAppointmentDate } = useDateValidation();
 
-  // Find the selected professional
-  const selectedProfessional = professionals.find(p => p.id === professionalId);
-  
   // Fetch appointments for the selected date and professional
   const { data: appointments = [], isLoading: isLoadingAppointments } = useQuery({
-    queryKey: ['appointments-for-date', date ? format(date, 'yyyy-MM-dd') : null, professionalId],
+    queryKey: ['appointments-for-date', date ? format(date, 'yyyy-MM-dd') : null, selectedProfessional?.id],
     queryFn: async () => {
-      if (!date || !professionalId) return [];
+      if (!date || !selectedProfessional) return [];
       
       const formattedDate = format(date, 'yyyy-MM-dd');
       
@@ -54,7 +54,7 @@ const DateAndTimeSelector = ({
         .from('agendamentos')
         .select('*')
         .eq('data', formattedDate)
-        .eq('profissional_id', professionalId)
+        .eq('profissional_id', selectedProfessional.id)
         .neq('status', 'cancelado');
       
       if (error) {
@@ -62,10 +62,10 @@ const DateAndTimeSelector = ({
         return [];
       }
       
-      console.log(`Encontrados ${data?.length || 0} agendamentos para ${formattedDate} com o profissional ${professionalId}`);
+      console.log(`📅 Agendamentos encontrados: ${data?.length || 0} para ${formattedDate}`);
       return data || [];
     },
-    enabled: !!date && !!professionalId
+    enabled: !!date && !!selectedProfessional
   });
   
   // Generate available time slots
@@ -77,71 +77,58 @@ const DateAndTimeSelector = ({
   });
 
   const handleDateSelect = (newDate: Date | undefined) => {
-    if (newDate) {
+    if (newDate && isValidAppointmentDate(newDate)) {
+      console.log("📅 Data selecionada:", newDate);
+      setDate(newDate);
+      setSelectedProfessional(null);
+      setTime("");
+      
+      updateAppointmentData({
+        date: newDate,
+        time: "",
+        professional: undefined
+      });
+
       if (isHoliday(newDate)) {
         toast({
-          title: "Data selecionada é um feriado",
-          description: "O agendamento é permitido, mas verifique o funcionamento do estabelecimento nesta data.",
+          title: "Feriado selecionado",
+          description: "Verifique o funcionamento do estabelecimento nesta data.",
           variant: "default",
-        });
-      }
-      
-      if (isValidAppointmentDate(newDate)) {
-        console.log("Data selecionada:", newDate);
-        setDate(newDate);
-        // Clear professional and time when date changes
-        setProfessionalId("");
-        setProfessionalName("");
-        setTime("");
-        
-        // Update parent component
-        updateAppointmentData({
-          date: newDate,
-          time: "",
-          professional_id: "",
-          professional_name: ""
         });
       }
     }
   };
 
-  const handleProfessionalSelect = (id: string) => {
-    const professional = professionals.find(p => p.id === id);
+  const handleProfessionalSelect = (professionalId: string) => {
+    const professional = professionals.find(p => p.id === professionalId);
     if (professional) {
-      console.log("Profissional selecionado:", professional);
-      setProfessionalId(id);
-      setProfessionalName(professional.nome);
-      // Clear time when professional changes
+      console.log("👨‍💼 Profissional selecionado:", professional);
+      setSelectedProfessional(professional);
       setTime("");
       
-      // Update parent component
       updateAppointmentData({
         date: date,
         time: "",
-        professional_id: id,
-        professional_name: professional.nome
+        professional: professional
       });
     }
   };
 
   const handleTimeSelect = (selectedTime: string) => {
-    console.log("Horário selecionado:", selectedTime);
+    console.log("⏰ Horário selecionado:", selectedTime);
     setTime(selectedTime);
     
-    // Update parent component with complete data
     updateAppointmentData({
       date: date,
       time: selectedTime,
-      professional_id: professionalId,
-      professional_name: professionalName
+      professional: selectedProfessional
     });
   };
 
   const handleContinue = () => {
     console.log("=== VALIDAÇÃO ANTES DE CONTINUAR ===");
     console.log("Data:", date);
-    console.log("Profissional ID:", professionalId);
-    console.log("Profissional Nome:", professionalName);
+    console.log("Profissional:", selectedProfessional);
     console.log("Horário:", time);
 
     if (!date) {
@@ -153,7 +140,7 @@ const DateAndTimeSelector = ({
       return;
     }
 
-    if (!professionalId) {
+    if (!selectedProfessional) {
       toast({
         title: "Profissional obrigatório",
         description: "Por favor, selecione um profissional.",
@@ -171,14 +158,13 @@ const DateAndTimeSelector = ({
       return;
     }
 
-    console.log("Todos os dados validados, prosseguindo...");
+    console.log("✅ Todos os dados validados, prosseguindo...");
 
-    // Final update to ensure parent has all data
+    // Atualização final para garantir que todos os dados estão corretos
     updateAppointmentData({
       date: date,
       time: time,
-      professional_id: professionalId,
-      professional_name: professionalName
+      professional: selectedProfessional
     });
 
     nextStep();
@@ -201,12 +187,12 @@ const DateAndTimeSelector = ({
           isLoading={isLoading}
           error={error}
           professionals={professionals}
-          selectedProfessionalId={professionalId}
+          selectedProfessionalId={selectedProfessional?.id || ""}
           onProfessionalSelect={handleProfessionalSelect}
         />
 
         <TimeSelector
-          professionalId={professionalId}
+          professionalId={selectedProfessional?.id || ""}
           availableTimes={availableTimes}
           selectedTime={time}
           onTimeSelect={handleTimeSelect}

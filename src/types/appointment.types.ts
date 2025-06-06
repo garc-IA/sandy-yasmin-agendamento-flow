@@ -1,49 +1,46 @@
-import { Client, Service, Professional } from "@/lib/supabase";
 
-export interface AppointmentWithDetails {
+// Tipos centralizados para o sistema de agendamentos
+export interface Service {
   id: string;
-  cliente_id: string;
-  servico_id: string;
-  profissional_id: string;
-  data: string;
-  hora: string;
-  start_time: string | null;
-  end_time: string | null;
-  status: "agendado" | "concluido" | "cancelado";
-  ultima_mensagem_enviada_em: string | null;
+  nome: string;
+  valor: number;
+  duracao_em_minutos: number;
+  descricao: string;
   created_at: string;
-  motivo_cancelamento?: string | null;
-  avaliado: boolean | null;
-  cliente: Client;
-  servico: Service;
-  profissional: Professional;
+  ativo: boolean;
+  categoria_id: string | null;
+  imagem_url: string | null;
+  admin_id: string | null;
+}
+
+export interface Professional {
+  id: string;
+  nome: string;
+  dias_atendimento: string[];
+  horario_inicio: string;
+  horario_fim: string;
+  specialization?: string;
+  created_at?: string;
+  admin_id?: string | null;
+}
+
+export interface Client {
+  id?: string;
+  nome: string;
+  telefone: string;
+  email: string;
+  created_at?: string;
+  admin_id?: string | null;
 }
 
 export interface AppointmentData {
-  service: Service | null;
-  professional_id: string | null;
-  date: Date | null;
-  time: string | null;
-  client: Client | null;
-}
-
-export type AppointmentStatus = "agendado" | "concluido" | "cancelado";
-
-export type AppointmentFilter = {
-  status?: AppointmentStatus | "all";
-  professionalId?: string | "all";
-  startDate?: string | null;
-  endDate?: string | null;
-  clientQuery?: string | null;
-}
-
-export interface TimeSlot {
+  service: Service;
+  professional: Professional;
+  professional_name: string;
+  professional_id: string;
+  date: string;
   time: string;
-  isAvailable: boolean;
-  appointments?: AppointmentWithDetails[];
+  client: Client;
 }
 
-export interface DateWithSlots {
-  date: Date;
-  slots: TimeSlot[];
-}
+export type AppointmentStatus = 'agendado' | 'concluido' | 'cancelado';

@@ -1,28 +1,10 @@
 
 import { useState } from "react";
-import { Client } from "@/lib/supabase";
-
-interface Servico {
-  id: string;
-  nome: string;
-  valor: number;
-  duracao_em_minutos: number;
-  descricao: string;
-  created_at: string;
-  ativo: boolean;
-  categoria_id: string | null;
-  imagem_url: string | null;
-  admin_id: string | null;
-}
-
-interface Professional {
-  id: string;
-  nome: string;
-}
+import { Service, Professional, Client } from "@/types/appointment.types";
 
 export const useAppointmentState = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedService, setSelectedService] = useState<Servico | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -39,6 +21,7 @@ export const useAppointmentState = () => {
     setSelectedTime("");
     setClient(null);
     setAppointmentId("");
+    setIsSubmitting(false);
     setIsComplete(false);
   };
 

@@ -2,12 +2,18 @@
 import AppointmentSummary from "./AppointmentSummary";
 import ConfirmationComplete from "./ConfirmationComplete";
 import ConfirmationActions from "./ConfirmationActions";
-import type { ConfirmationProps } from "./types/confirmation.types";
+import { AppointmentData } from "@/types/appointment.types";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface ExtendedConfirmationProps extends Omit<ConfirmationProps, 'onConfirm'> {
-  onConfirm?: () => void;
+interface ConfirmationProps {
+  appointmentData: AppointmentData;
+  isSubmitting: boolean;
+  isComplete: boolean;
+  setIsSubmitting: (value: boolean) => void;
+  setIsComplete: (value: boolean) => void;
+  prevStep: () => void;
+  onConfirm: () => void;
 }
 
 const Confirmation = ({
@@ -18,11 +24,12 @@ const Confirmation = ({
   setIsComplete,
   prevStep,
   onConfirm
-}: ExtendedConfirmationProps) => {
+}: ConfirmationProps) => {
+  console.log("📋 Confirmation - Dados recebidos:", appointmentData);
+
   const handleConfirm = () => {
-    if (onConfirm) {
-      onConfirm();
-    }
+    console.log("🚀 Iniciando confirmação do agendamento");
+    onConfirm();
   };
 
   return (

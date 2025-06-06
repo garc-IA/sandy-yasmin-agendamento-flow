@@ -3,36 +3,18 @@ import ServiceSelection from "@/components/appointment/ServiceSelection";
 import DateAndTimeSelector from "@/components/appointment/DateAndTimeSelector";
 import CustomerForm from "@/components/appointment/CustomerForm";
 import Confirmation from "@/components/appointment/Confirmation";
-import { Client } from "@/lib/supabase";
-
-interface Servico {
-  id: string;
-  nome: string;
-  valor: number;
-  duracao_em_minutos: number;
-  descricao: string;
-  created_at: string;
-  ativo: boolean;
-  categoria_id: string | null;
-  imagem_url: string | null;
-  admin_id: string | null;
-}
-
-interface Professional {
-  id: string;
-  nome: string;
-}
+import { Service, Professional, Client, AppointmentData } from "@/types/appointment.types";
 
 interface AppointmentStepHandlerProps {
   currentStep: number;
-  selectedService: Servico | null;
+  selectedService: Service | null;
   selectedProfessional: Professional | null;
   selectedDate: Date | null;
   selectedTime: string;
   client: Client | null;
   isSubmitting: boolean;
   isComplete: boolean;
-  onServiceSelect: (service: Servico) => void;
+  onServiceSelect: (service: Service) => void;
   onDateTimeSelect: (data: any) => void;
   onCustomerSubmit: (clientData: Client) => void;
   onBack: () => void;
@@ -60,18 +42,25 @@ const AppointmentStepHandler = ({
   setIsComplete,
   setCurrentStep,
 }: AppointmentStepHandlerProps) => {
-  // Preparar dados do agendamento para o componente de confirmação
-  const appointmentData = selectedService && selectedDate && selectedProfessional && client ? {
-    service: {
-      ...selectedService,
-      descricao: selectedService.descricao || ""
-    },
+  // Preparar dados do agendamento para confirmação
+  const appointmentData: AppointmentData | null = selectedService && selectedDate && selectedProfessional && client ? {
+    service: selectedService,
+    professional: selectedProfessional,
     professional_name: selectedProfessional.nome,
     professional_id: selectedProfessional.id,
     date: selectedDate.toISOString().split('T')[0],
     time: selectedTime,
     client: client
   } : null;
+
+  console.log(`📍 Step ${currentStep} - Dados disponíveis:`, {
+    service: !!selectedService,
+    professional: !!selectedProfessional,
+    date: !!selectedDate,
+    time: !!selectedTime,
+    client: !!client,
+    appointmentData: !!appointmentData
+  });
 
   if (currentStep === 1) {
     return (
@@ -119,6 +108,13 @@ const AppointmentStepHandler = ({
         onConfirm={onConfirmAppointment}
       />
     );
+  }
+
+  // Fallback para casos onde dados estão incompletos
+  if (currentStep === 4 && !appointmentData) {
+    console.error("❌ Dados incompletos no step 4");
+    setCurrentStep(1);
+    return null;
   }
 
   return null;
