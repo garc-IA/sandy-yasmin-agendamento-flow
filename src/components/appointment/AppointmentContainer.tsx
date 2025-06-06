@@ -35,6 +35,7 @@ export default function AppointmentContainer() {
     handleServiceSelect,
     handleDateTimeSelect,
     handleCustomerSubmit,
+    handleConfirmAppointment,
     handleBack,
   } = useAppointmentHandlers({
     setCurrentStep,
@@ -90,6 +91,7 @@ export default function AppointmentContainer() {
               onDateTimeSelect={handleDateTimeSelect}
               onCustomerSubmit={handleCustomerSubmit}
               onBack={handleBack}
+              onConfirmAppointment={handleConfirmAppointment}
               setIsSubmitting={setIsSubmitting}
               setIsComplete={setIsComplete}
               setCurrentStep={setCurrentStep}

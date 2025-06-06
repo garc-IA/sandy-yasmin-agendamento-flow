@@ -57,6 +57,7 @@ export const useAppointmentHandlers = ({
   const { toast } = useToast();
 
   const handleServiceSelect = (service: Servico) => {
+    console.log("Serviço selecionado:", service);
     setSelectedService(service);
     setCurrentStep(2);
   };
@@ -65,48 +66,51 @@ export const useAppointmentHandlers = ({
     console.log("Dados recebidos no handleDateTimeSelect:", data);
     
     if (data.date) {
+      console.log("Definindo data:", data.date);
       setSelectedDate(data.date);
     }
     
     if (data.time) {
+      console.log("Definindo horário:", data.time);
       setSelectedTime(data.time);
     }
     
     if (data.professional_id && data.professional_name) {
-      setSelectedProfessional({
+      const professional = {
         id: data.professional_id,
         nome: data.professional_name
-      });
-      
-      console.log("Profissional definido:", {
-        id: data.professional_id,
-        nome: data.professional_name
-      });
+      };
+      console.log("Definindo profissional:", professional);
+      setSelectedProfessional(professional);
     }
   };
 
   const handleCustomerSubmit = (clientData: Client) => {
+    console.log("Cliente definido:", clientData);
     setClient(clientData);
     setCurrentStep(4);
   };
 
   const handleConfirmAppointment = async () => {
-    console.log("Iniciando confirmação com dados:", {
-      selectedService,
-      selectedProfessional,
+    console.log("=== INICIANDO CONFIRMAÇÃO DE AGENDAMENTO ===");
+    console.log("Dados do agendamento:", {
+      selectedService: selectedService?.nome,
+      selectedProfessional: selectedProfessional?.nome,
       selectedDate,
       selectedTime,
-      client
+      client: client?.nome
     });
 
-    if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime || !client) {
-      const missingData = [];
-      if (!selectedService) missingData.push("serviço");
-      if (!selectedProfessional) missingData.push("profissional");
-      if (!selectedDate) missingData.push("data");
-      if (!selectedTime) missingData.push("horário");
-      if (!client) missingData.push("dados do cliente");
+    // Validação rigorosa de todos os dados necessários
+    const missingData = [];
+    if (!selectedService) missingData.push("serviço");
+    if (!selectedProfessional) missingData.push("profissional");
+    if (!selectedDate) missingData.push("data");
+    if (!selectedTime) missingData.push("horário");
+    if (!client) missingData.push("dados do cliente");
 
+    if (missingData.length > 0) {
+      console.error("ERRO: Dados faltando:", missingData);
       toast({
         title: "Dados incompletos",
         description: `Faltam os seguintes dados: ${missingData.join(", ")}`,
@@ -116,23 +120,45 @@ export const useAppointmentHandlers = ({
     }
 
     try {
-      // Criar ou buscar cliente
-      const { data: clienteData, error: clienteError } = await supabase.rpc(
+      // Buscar admin ID
+      console.log("Buscando admin...");
+      const { data: adminData, error: adminError } = await supabase
+        .from("admins")
+        .select("id")
+        .eq("email", "admin@studio.com")
+        .single();
+
+      if (adminError || !adminData?.id) {
+        console.error("Erro ao buscar admin:", adminError);
+        throw new Error("Admin não encontrado");
+      }
+
+      console.log("Admin encontrado:", adminData.id);
+
+      // Criar ou buscar cliente usando a função do banco
+      console.log("Criando/buscando cliente...");
+      const { data: clienteId, error: clienteError } = await supabase.rpc(
         'criar_cliente',
         {
           p_nome: client.nome,
           p_telefone: client.telefone,
-          p_email: client.email
+          p_email: client.email,
+          p_admin_id: adminData.id
         }
       );
 
-      if (clienteError) throw clienteError;
+      if (clienteError) {
+        console.error("Erro ao criar/buscar cliente:", clienteError);
+        throw clienteError;
+      }
+
+      console.log("Cliente ID:", clienteId);
 
       // Criar agendamento
       const dataFormatada = selectedDate.toISOString().split('T')[0];
       
-      console.log("Criando agendamento com:", {
-        cliente_id: clienteData,
+      console.log("Criando agendamento com dados:", {
+        cliente_id: clienteId,
         servico_id: selectedService.id,
         profissional_id: selectedProfessional.id,
         data: dataFormatada,
@@ -143,7 +169,7 @@ export const useAppointmentHandlers = ({
       const { data: agendamentoData, error: agendamentoError } = await supabase
         .from('agendamentos')
         .insert({
-          cliente_id: clienteData,
+          cliente_id: clienteId,
           servico_id: selectedService.id,
           profissional_id: selectedProfessional.id,
           data: dataFormatada,
@@ -153,20 +179,26 @@ export const useAppointmentHandlers = ({
         .select()
         .single();
 
-      if (agendamentoError) throw agendamentoError;
+      if (agendamentoError) {
+        console.error("Erro ao criar agendamento:", agendamentoError);
+        throw agendamentoError;
+      }
+
+      console.log("Agendamento criado com sucesso:", agendamentoData);
 
       setAppointmentId(agendamentoData.id);
       setIsComplete(true);
       
       toast({
         title: "Sucesso!",
-        description: "Agendamento realizado com sucesso",
+        description: "Agendamento realizado com sucesso!",
       });
+
     } catch (error) {
-      console.error('Erro ao criar agendamento:', error);
+      console.error('ERRO FATAL ao criar agendamento:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível realizar o agendamento",
+        description: "Não foi possível realizar o agendamento. Tente novamente.",
         variant: "destructive",
       });
     }

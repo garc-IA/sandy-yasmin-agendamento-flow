@@ -36,6 +36,7 @@ interface AppointmentStepHandlerProps {
   onDateTimeSelect: (data: any) => void;
   onCustomerSubmit: (clientData: Client) => void;
   onBack: () => void;
+  onConfirmAppointment: () => void;
   setIsSubmitting: (value: boolean) => void;
   setIsComplete: (value: boolean) => void;
   setCurrentStep: (step: number) => void;
@@ -54,11 +55,12 @@ const AppointmentStepHandler = ({
   onDateTimeSelect,
   onCustomerSubmit,
   onBack,
+  onConfirmAppointment,
   setIsSubmitting,
   setIsComplete,
   setCurrentStep,
 }: AppointmentStepHandlerProps) => {
-  // Prepare appointment data for confirmation component
+  // Preparar dados do agendamento para o componente de confirmação
   const appointmentData = selectedService && selectedDate && selectedProfessional && client ? {
     service: {
       ...selectedService,
@@ -114,6 +116,7 @@ const AppointmentStepHandler = ({
         setIsSubmitting={setIsSubmitting}
         setIsComplete={setIsComplete}
         prevStep={onBack}
+        onConfirm={onConfirmAppointment}
       />
     );
   }

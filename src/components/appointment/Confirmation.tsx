@@ -2,10 +2,13 @@
 import AppointmentSummary from "./AppointmentSummary";
 import ConfirmationComplete from "./ConfirmationComplete";
 import ConfirmationActions from "./ConfirmationActions";
-import { useConfirmation } from "./hooks/useConfirmation";
 import type { ConfirmationProps } from "./types/confirmation.types";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+interface ExtendedConfirmationProps extends Omit<ConfirmationProps, 'onConfirm'> {
+  onConfirm?: () => void;
+}
 
 const Confirmation = ({
   appointmentData,
@@ -14,18 +17,19 @@ const Confirmation = ({
   setIsSubmitting,
   setIsComplete,
   prevStep,
-}: ConfirmationProps) => {
-  const { appointmentId, handleConfirmation } = useConfirmation();
-
+  onConfirm
+}: ExtendedConfirmationProps) => {
   const handleConfirm = () => {
-    handleConfirmation(appointmentData, setIsSubmitting, setIsComplete);
+    if (onConfirm) {
+      onConfirm();
+    }
   };
 
   return (
     <div>
       {isComplete ? (
         <ConfirmationComplete
-          appointmentId={appointmentId}
+          appointmentId={null}
           appointmentData={appointmentData}
         />
       ) : (
