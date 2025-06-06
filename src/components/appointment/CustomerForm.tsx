@@ -1,7 +1,8 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { supabase, Client } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
+import { Client } from "@/types/appointment.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,7 +92,7 @@ const CustomerForm = ({
       }
       
       if (clientsByPhone && clientsByPhone.length > 0) {
-        updateAppointmentData({ client: clientsByPhone[0] });
+        updateAppointmentData({ client: clientsByPhone[0] as Client });
         toast({
           title: "Cliente encontrado",
           description: "Utilizaremos seus dados já cadastrados.",
@@ -118,7 +119,7 @@ const CustomerForm = ({
       }
       
       if (clientsByEmail && clientsByEmail.length > 0) {
-        updateAppointmentData({ client: clientsByEmail[0] });
+        updateAppointmentData({ client: clientsByEmail[0] as Client });
         toast({
           title: "Cliente encontrado",
           description: "Utilizaremos seus dados já cadastrados.",
@@ -128,18 +129,20 @@ const CustomerForm = ({
         return;
       }
       
-      const newClient: Omit<Client, "id" | "created_at"> = {
+      // Se não encontrado, criar um objeto cliente temporário com dados necessários
+      const newClient: Client = {
+        id: "", // Será preenchido no momento da criação no banco
         nome: data.nome.trim(),
         telefone: formattedPhone,
         email: data.email.trim().toLowerCase(),
-        admin_id: adminId // Adicionando admin_id que estava faltando
+        admin_id: adminId
       };
       
       if (salonId) {
         (newClient as any).salao_id = salonId;
       }
       
-      updateAppointmentData({ client: newClient as Client });
+      updateAppointmentData({ client: newClient });
       toast({
         title: "Dados validados",
         description: "Seus dados foram validados com sucesso.",

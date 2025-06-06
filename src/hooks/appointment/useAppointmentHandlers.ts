@@ -113,23 +113,29 @@ export const useAppointmentHandlers = ({
 
       console.log("✅ Admin encontrado:", adminData.id);
 
-      console.log("👤 Criando/buscando cliente...");
-      const { data: clienteId, error: clienteError } = await supabase.rpc(
-        'criar_cliente',
-        {
-          p_nome: client.nome,
-          p_telefone: client.telefone,
-          p_email: client.email,
-          p_admin_id: adminData.id
+      // Verificar se o cliente já tem ID ou precisa ser criado
+      let clienteId = client.id;
+      
+      if (!clienteId) {
+        console.log("👤 Criando cliente...");
+        const { data: newClientId, error: clienteError } = await supabase.rpc(
+          'criar_cliente',
+          {
+            p_nome: client.nome,
+            p_telefone: client.telefone,
+            p_email: client.email,
+            p_admin_id: adminData.id
+          }
+        );
+
+        if (clienteError) {
+          console.error("❌ Erro ao criar cliente:", clienteError);
+          throw clienteError;
         }
-      );
 
-      if (clienteError) {
-        console.error("❌ Erro ao criar cliente:", clienteError);
-        throw clienteError;
+        clienteId = newClientId;
+        console.log("✅ Cliente criado com ID:", clienteId);
       }
-
-      console.log("✅ Cliente ID:", clienteId);
 
       const dataFormatada = selectedDate.toISOString().split('T')[0];
       
