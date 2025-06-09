@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import type { AppointmentData } from "../types/confirmation.types";
+import type { AppointmentData } from "@/types/appointment.types";
 import { logAppointmentAction, logAppointmentError } from "@/utils/debugUtils";
 
 export const useConfirmation = () => {
@@ -76,7 +76,7 @@ export const useConfirmation = () => {
    */
   const createAppointment = async (appointmentData: AppointmentData, clientId: string) => {
     // Get professional ID from either property
-    const professionalId = appointmentData.professional_id || appointmentData.professionalId;
+    const professionalId = appointmentData.professional_id || appointmentData.professional?.id;
     
     if (!professionalId) {
       logAppointmentError("Profissional não informado", "unknown");

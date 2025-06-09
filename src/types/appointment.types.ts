@@ -1,5 +1,4 @@
 
-
 // Tipos centralizados para o sistema de agendamentos
 export interface Service {
   id: string;
@@ -26,7 +25,7 @@ export interface Professional {
 }
 
 export interface Client {
-  id: string; // Mudando para obrigatório
+  id: string;
   nome: string;
   telefone: string;
   email: string;
@@ -59,7 +58,7 @@ export interface AppointmentWithDetails {
     id: string;
     nome: string;
     specialization?: string;
-    horario_inicio: string; // Adicionando propriedades necessárias
+    horario_inicio: string;
     horario_fim: string;
   };
 }
@@ -75,4 +74,3 @@ export interface AppointmentData {
 }
 
 export type AppointmentStatus = 'agendado' | 'concluido' | 'cancelado';
-

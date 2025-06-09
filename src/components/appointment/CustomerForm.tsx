@@ -92,7 +92,17 @@ const CustomerForm = ({
       }
       
       if (clientsByPhone && clientsByPhone.length > 0) {
-        updateAppointmentData({ client: clientsByPhone[0] as Client });
+        // Ensure the client has all required fields
+        const existingClient: Client = {
+          id: clientsByPhone[0].id,
+          nome: clientsByPhone[0].nome,
+          telefone: clientsByPhone[0].telefone,
+          email: clientsByPhone[0].email,
+          created_at: clientsByPhone[0].created_at,
+          admin_id: clientsByPhone[0].admin_id
+        };
+        
+        updateAppointmentData({ client: existingClient });
         toast({
           title: "Cliente encontrado",
           description: "Utilizaremos seus dados já cadastrados.",
@@ -119,7 +129,17 @@ const CustomerForm = ({
       }
       
       if (clientsByEmail && clientsByEmail.length > 0) {
-        updateAppointmentData({ client: clientsByEmail[0] as Client });
+        // Ensure the client has all required fields
+        const existingClient: Client = {
+          id: clientsByEmail[0].id,
+          nome: clientsByEmail[0].nome,
+          telefone: clientsByEmail[0].telefone,
+          email: clientsByEmail[0].email,
+          created_at: clientsByEmail[0].created_at,
+          admin_id: clientsByEmail[0].admin_id
+        };
+        
+        updateAppointmentData({ client: existingClient });
         toast({
           title: "Cliente encontrado",
           description: "Utilizaremos seus dados já cadastrados.",

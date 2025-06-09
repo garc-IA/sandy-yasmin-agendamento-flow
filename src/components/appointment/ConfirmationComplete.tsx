@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
-import type { AppointmentData } from "./types/confirmation.types";
+import type { AppointmentData } from "@/types/appointment.types";
 
 interface ConfirmationCompleteProps {
   appointmentData: AppointmentData;
