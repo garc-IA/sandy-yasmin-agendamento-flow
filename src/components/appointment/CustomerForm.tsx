@@ -98,8 +98,8 @@ const CustomerForm = ({
           nome: clientsByPhone[0].nome,
           telefone: clientsByPhone[0].telefone,
           email: clientsByPhone[0].email,
-          created_at: clientsByPhone[0].created_at,
-          admin_id: clientsByPhone[0].admin_id
+          created_at: clientsByPhone[0].created_at || new Date().toISOString(),
+          admin_id: clientsByPhone[0].admin_id || adminId
         };
         
         updateAppointmentData({ client: existingClient });
@@ -135,8 +135,8 @@ const CustomerForm = ({
           nome: clientsByEmail[0].nome,
           telefone: clientsByEmail[0].telefone,
           email: clientsByEmail[0].email,
-          created_at: clientsByEmail[0].created_at,
-          admin_id: clientsByEmail[0].admin_id
+          created_at: clientsByEmail[0].created_at || new Date().toISOString(),
+          admin_id: clientsByEmail[0].admin_id || adminId
         };
         
         updateAppointmentData({ client: existingClient });
@@ -155,6 +155,7 @@ const CustomerForm = ({
         nome: data.nome.trim(),
         telefone: formattedPhone,
         email: data.email.trim().toLowerCase(),
+        created_at: new Date().toISOString(),
         admin_id: adminId
       };
       

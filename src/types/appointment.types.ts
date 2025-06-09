@@ -20,8 +20,8 @@ export interface Professional {
   horario_inicio: string;
   horario_fim: string;
   specialization?: string;
-  created_at?: string;
-  admin_id?: string | null;
+  created_at: string;
+  admin_id: string;
 }
 
 export interface Client {
@@ -29,8 +29,8 @@ export interface Client {
   nome: string;
   telefone: string;
   email: string;
-  created_at?: string;
-  admin_id?: string | null;
+  created_at: string;
+  admin_id: string;
 }
 
 // Tipo para agendamento com detalhes completos (usado em listas e diálogos)

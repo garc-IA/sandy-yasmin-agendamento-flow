@@ -103,13 +103,20 @@ const DateAndTimeSelector = ({
     const professional = professionals.find(p => p.id === professionalId);
     if (professional) {
       console.log("👨‍💼 Profissional selecionado:", professional);
-      setSelectedProfessional(professional);
+      // Ensure all required fields are present
+      const professionalWithDefaults: Professional = {
+        ...professional,
+        created_at: professional.created_at || new Date().toISOString(),
+        admin_id: professional.admin_id || ''
+      };
+      
+      setSelectedProfessional(professionalWithDefaults);
       setTime("");
       
       updateAppointmentData({
         date: date,
         time: "",
-        professional: professional
+        professional: professionalWithDefaults
       });
     }
   };
