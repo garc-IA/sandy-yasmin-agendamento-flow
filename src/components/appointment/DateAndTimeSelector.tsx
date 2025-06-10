@@ -103,9 +103,14 @@ const DateAndTimeSelector = ({
     const professional = professionals.find(p => p.id === professionalId);
     if (professional) {
       console.log("👨‍💼 Profissional selecionado:", professional);
-      // Ensure all required fields are present
+      // Ensure all required fields are present with safe defaults
       const professionalWithDefaults: Professional = {
-        ...professional,
+        id: professional.id,
+        nome: professional.nome,
+        dias_atendimento: professional.dias_atendimento,
+        horario_inicio: professional.horario_inicio,
+        horario_fim: professional.horario_fim,
+        specialization: professional.specialization || '',
         created_at: professional.created_at || new Date().toISOString(),
         admin_id: professional.admin_id || ''
       };

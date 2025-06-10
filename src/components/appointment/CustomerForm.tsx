@@ -92,7 +92,7 @@ const CustomerForm = ({
       }
       
       if (clientsByPhone && clientsByPhone.length > 0) {
-        // Ensure the client has all required fields
+        // Ensure the client has all required fields with safe defaults
         const existingClient: Client = {
           id: clientsByPhone[0].id,
           nome: clientsByPhone[0].nome,
@@ -129,7 +129,7 @@ const CustomerForm = ({
       }
       
       if (clientsByEmail && clientsByEmail.length > 0) {
-        // Ensure the client has all required fields
+        // Ensure the client has all required fields with safe defaults
         const existingClient: Client = {
           id: clientsByEmail[0].id,
           nome: clientsByEmail[0].nome,

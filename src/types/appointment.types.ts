@@ -19,7 +19,7 @@ export interface Professional {
   dias_atendimento: string[];
   horario_inicio: string;
   horario_fim: string;
-  specialization?: string;
+  specialization: string;
   created_at: string;
   admin_id: string;
 }
