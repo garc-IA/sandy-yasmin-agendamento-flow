@@ -7,7 +7,7 @@ import { ProfessionalSelector } from "@/components/shared/date-time/Professional
 import { TimeSelector } from "@/components/shared/date-time/TimeSelector";
 import { useTimeSlots } from "@/components/shared/date-time/hooks/useTimeSlots";
 import { useProfessionals } from "./hooks/useProfessionals";
-import { useDateValidation } from "./hooks/useDateValidation";
+import { useDateValidation } from "./hooks/useDateValidation";  
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -42,8 +42,7 @@ const DateAndTimeSelector = ({
   const { toast } = useToast();
   const { isDateDisabled, isHoliday, isValidAppointmentDate } = useDateValidation();
 
-  // Fetch appointments for the selected date and professional
-  const { data: appointments = [], isLoading: isLoadingAppointments } = useQuery({
+  const { data: appointments = [] } = useQuery({
     queryKey: ['appointments-for-date', date ? format(date, 'yyyy-MM-dd') : null, selectedProfessional?.id],
     queryFn: async () => {
       if (!date || !selectedProfessional) return [];
@@ -62,13 +61,11 @@ const DateAndTimeSelector = ({
         return [];
       }
       
-      console.log(`📅 Agendamentos encontrados: ${data?.length || 0} para ${formattedDate}`);
       return data || [];
     },
     enabled: !!date && !!selectedProfessional
   });
   
-  // Generate available time slots
   const availableTimes = useTimeSlots({
     date,
     selectedService,
@@ -78,7 +75,6 @@ const DateAndTimeSelector = ({
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate && isValidAppointmentDate(newDate)) {
-      console.log("📅 Data selecionada:", newDate);
       setDate(newDate);
       setSelectedProfessional(null);
       setTime("");
@@ -93,7 +89,6 @@ const DateAndTimeSelector = ({
         toast({
           title: "Feriado selecionado",
           description: "Verifique o funcionamento do estabelecimento nesta data.",
-          variant: "default",
         });
       }
     }
@@ -102,8 +97,6 @@ const DateAndTimeSelector = ({
   const handleProfessionalSelect = (professionalId: string) => {
     const professional = professionals.find(p => p.id === professionalId);
     if (professional) {
-      console.log("👨‍💼 Profissional selecionado:", professional);
-      // Ensure all required fields are present with safe defaults
       const professionalWithDefaults: Professional = {
         id: professional.id,
         nome: professional.nome,
@@ -127,7 +120,6 @@ const DateAndTimeSelector = ({
   };
 
   const handleTimeSelect = (selectedTime: string) => {
-    console.log("⏰ Horário selecionado:", selectedTime);
     setTime(selectedTime);
     
     updateAppointmentData({
@@ -138,11 +130,6 @@ const DateAndTimeSelector = ({
   };
 
   const handleContinue = () => {
-    console.log("=== VALIDAÇÃO ANTES DE CONTINUAR ===");
-    console.log("Data:", date);
-    console.log("Profissional:", selectedProfessional);
-    console.log("Horário:", time);
-
     if (!date) {
       toast({
         title: "Data obrigatória",
@@ -170,9 +157,6 @@ const DateAndTimeSelector = ({
       return;
     }
 
-    console.log("✅ Todos os dados validados, prosseguindo...");
-
-    // Atualização final para garantir que todos os dados estão corretos
     updateAppointmentData({
       date: date,
       time: time,

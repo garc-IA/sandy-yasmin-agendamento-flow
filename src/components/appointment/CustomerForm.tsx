@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { Client } from "@/types/appointment.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import { formatPhoneNumber, validateEmail, validatePhone } from "@/lib/phoneUtils";
 import { useToast } from "@/hooks/use-toast";
@@ -37,7 +36,6 @@ const CustomerForm = ({
   updateAppointmentData,
   nextStep,
   prevStep,
-  salonId,
 }: CustomerFormProps) => {
   const [isCheckingClient, setIsCheckingClient] = useState(false);
   const { toast } = useToast();
@@ -60,7 +58,6 @@ const CustomerForm = ({
     setIsCheckingClient(true);
     
     try {
-      // Obtenha o ID do admin padrão primeiro
       const { data: adminData, error: adminError } = await supabase
         .from("admins")
         .select("id")
@@ -68,31 +65,21 @@ const CustomerForm = ({
         .single();
       
       if (adminError || !adminData?.id) {
-        console.error("Erro ao buscar admin:", adminError);
         throw new Error("Admin não encontrado");
       }
       
       const adminId = adminData.id;
-      
-      // Check by phone first since this is causing the primary error
       const formattedPhone = data.telefone;
+      
+      // Check by phone first
       const { data: clientsByPhone, error: phoneError } = await supabase
         .from("clientes")
         .select("*")
         .eq("telefone", formattedPhone);
       
-      if (phoneError) {
-        console.error("Erro ao verificar telefone:", phoneError);
-        toast({
-          title: "Erro na verificação",
-          description: "Ocorreu um erro ao verificar seu telefone. Tente novamente.",
-          variant: "destructive",
-        });
-        throw phoneError;
-      }
+      if (phoneError) throw phoneError;
       
       if (clientsByPhone && clientsByPhone.length > 0) {
-        // Ensure the client has all required fields with safe defaults
         const existingClient: Client = {
           id: clientsByPhone[0].id,
           nome: clientsByPhone[0].nome,
@@ -106,30 +93,20 @@ const CustomerForm = ({
         toast({
           title: "Cliente encontrado",
           description: "Utilizaremos seus dados já cadastrados.",
-          duration: 3000,
         });
         nextStep();
         return;
       }
       
-      // If not found by phone, check by email
+      // Check by email
       const { data: clientsByEmail, error: emailError } = await supabase
         .from("clientes")
         .select("*")
         .eq("email", data.email.trim().toLowerCase());
       
-      if (emailError) {
-        console.error("Erro ao verificar email:", emailError);
-        toast({
-          title: "Erro na verificação",
-          description: "Ocorreu um erro ao verificar seu email. Tente novamente.",
-          variant: "destructive",
-        });
-        throw emailError;
-      }
+      if (emailError) throw emailError;
       
       if (clientsByEmail && clientsByEmail.length > 0) {
-        // Ensure the client has all required fields with safe defaults
         const existingClient: Client = {
           id: clientsByEmail[0].id,
           nome: clientsByEmail[0].nome,
@@ -143,25 +120,20 @@ const CustomerForm = ({
         toast({
           title: "Cliente encontrado",
           description: "Utilizaremos seus dados já cadastrados.",
-          duration: 3000,
         });
         nextStep();
         return;
       }
       
-      // Se não encontrado, criar um objeto cliente temporário com dados necessários
+      // Create new client object
       const newClient: Client = {
-        id: "", // Será preenchido no momento da criação no banco
+        id: "",
         nome: data.nome.trim(),
         telefone: formattedPhone,
         email: data.email.trim().toLowerCase(),
         created_at: new Date().toISOString(),
         admin_id: adminId
       };
-      
-      if (salonId) {
-        (newClient as any).salao_id = salonId;
-      }
       
       updateAppointmentData({ client: newClient });
       toast({
@@ -194,22 +166,13 @@ const CustomerForm = ({
             name="nome"
             rules={{ 
               required: "O nome é obrigatório",
-              minLength: {
-                value: 3,
-                message: "O nome deve ter pelo menos 3 caracteres"
-              }
+              minLength: { value: 3, message: "O nome deve ter pelo menos 3 caracteres" }
             }}
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor="name">Nome completo</FormLabel>
+                <FormLabel>Nome completo</FormLabel>
                 <FormControl>
-                  <Input
-                    id="name"
-                    placeholder="Digite seu nome completo"
-                    aria-label="Nome completo"
-                    aria-required="true"
-                    {...field}
-                  />
+                  <Input placeholder="Digite seu nome completo" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -221,17 +184,14 @@ const CustomerForm = ({
             name="telefone"
             rules={{ 
               required: "O telefone é obrigatório",
-              validate: value => validatePhone(value) || "Formato de telefone inválido. Use (DDD) XXXXX-XXXX"
+              validate: value => validatePhone(value) || "Formato de telefone inválido"
             }}
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor="phone">Telefone com DDD</FormLabel>
+                <FormLabel>Telefone com DDD</FormLabel>
                 <FormControl>
                   <Input
-                    id="phone"
                     placeholder="(00) 00000-0000"
-                    aria-label="Telefone com DDD"
-                    aria-required="true"
                     value={field.value}
                     onChange={(e) => handlePhoneChange(e, field)}
                     onBlur={field.onBlur}
@@ -251,16 +211,9 @@ const CustomerForm = ({
             }}
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor="email">E-mail</FormLabel>
+                <FormLabel>E-mail</FormLabel>
                 <FormControl>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    aria-label="E-mail"
-                    aria-required="true"
-                    {...field}
-                  />
+                  <Input type="email" placeholder="seu@email.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

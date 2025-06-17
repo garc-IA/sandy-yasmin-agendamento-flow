@@ -5,6 +5,7 @@ import ConfirmationActions from "./ConfirmationActions";
 import { AppointmentData } from "@/types/appointment.types";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirmation } from "@/hooks/appointment/useConfirmation";
 
 interface ConfirmationProps {
   appointmentData: AppointmentData;
@@ -23,20 +24,19 @@ const Confirmation = ({
   setIsSubmitting,
   setIsComplete,
   prevStep,
-  onConfirm
 }: ConfirmationProps) => {
-  console.log("📋 Confirmation - Dados recebidos:", appointmentData);
+  const { appointmentId, handleConfirmation } = useConfirmation();
 
-  const handleConfirm = () => {
+  const onConfirm = () => {
     console.log("🚀 Iniciando confirmação do agendamento");
-    onConfirm();
+    handleConfirmation(appointmentData, setIsSubmitting, setIsComplete);
   };
 
   return (
     <div>
       {isComplete ? (
         <ConfirmationComplete
-          appointmentId={null}
+          appointmentId={appointmentId}
           appointmentData={appointmentData}
         />
       ) : (
@@ -67,7 +67,7 @@ const Confirmation = ({
             </Button>
             
             <ConfirmationActions
-              onConfirm={handleConfirm}
+              onConfirm={onConfirm}
               isSubmitting={isSubmitting}
               className="w-full sm:w-auto order-1 sm:order-2"
             />

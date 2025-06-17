@@ -7,9 +7,9 @@ export const useAppointmentState = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState("");
   const [client, setClient] = useState<Client | null>(null);
-  const [appointmentId, setAppointmentId] = useState<string>("");
+  const [appointmentId, setAppointmentId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
 
@@ -20,7 +20,7 @@ export const useAppointmentState = () => {
     setSelectedDate(null);
     setSelectedTime("");
     setClient(null);
-    setAppointmentId("");
+    setAppointmentId(null);
     setIsSubmitting(false);
     setIsComplete(false);
   };
